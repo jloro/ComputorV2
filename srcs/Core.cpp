@@ -74,7 +74,7 @@ void Core::ReplaceVar()
 {
 	std::smatch m;
 	std::string str, value;
-
+	int pos;
 	if (std::regex_match(_cmd, std::regex(".*\\?$")))
 		str = _cmd.substr(0, _cmd.find("="));
 	else
@@ -86,7 +86,10 @@ void Core::ReplaceVar()
 			value = Core::Dtoa(static_cast<Real*>(var)->GetValue());
 		else if (var->GetType() == eType::Matrix)
 			value = static_cast<Matrix*>(var)->ToString();
-		int pos = _cmd.find(m.str(), _cmd.find('='));
+		if (!std::regex_match(_cmd, std::regex(".*\\?$")))
+			pos = _cmd.find(m.str(), _cmd.find('='));
+		else
+			pos = _cmd.find(m.str());
 		_cmd.erase(pos, m.length());
 		_cmd.insert(pos, value);
 
