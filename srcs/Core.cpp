@@ -155,6 +155,13 @@ void Core::Checker()
 	}
 	else
 	{
+		std::string tmp = _cmd;
+		while (std::regex_search(tmp, m, std::regex("\\.")))
+		{
+			if (isdigit(tmp[m.position() - 1]) == 0 || isdigit(tmp[m.position() + 1]) == 0)
+				throw std::runtime_error("Syntax error.");
+			tmp = m.suffix();
+		}
 		while (calc.find(")") != std::string::npos)
 		{
 			int posFirstP = calc.find_last_of("(");
