@@ -156,7 +156,7 @@ double Real::EvalExpr(std::string str)
 		else
 		{
 			if (str[0] == '-' && str[1] == '-')
-				str.erase(str.begin(), str.begin() + 1);
+				str.erase(str.begin(), str.begin() + 2);
 			if (str.find("^") != std::string::npos)
 			{
 				std::string::size_type tmp;
