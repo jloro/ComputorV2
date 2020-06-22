@@ -162,6 +162,8 @@ void Core::Checker()
 				throw std::runtime_error("Syntax error.");
 			tmp = m.suffix();
 		}
+		if (std::regex_search(tmp, m, std::regex("\\d\\(")))
+			throw std::runtime_error("Syntax error.");
 		while (calc.find(")") != std::string::npos)
 		{
 			int posFirstP = calc.find_last_of("(");
