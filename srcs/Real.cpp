@@ -192,7 +192,7 @@ void Real::Check(std::string & str)
 			throw std::runtime_error("Syntax error: power not valid.");
 	}
 
-	if (std::count(str.begin(), str.end(), '-') != 1)
+	if (std::count(str.begin(), str.end(), '-') > 1)
 		throw std::runtime_error("Syntax error: too many minus.");
 
 	for (auto it = str.begin(); it != str.end(); it++)
