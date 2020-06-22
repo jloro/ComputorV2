@@ -33,7 +33,7 @@ std::string Core::ToLower(std::string str)
 
 bool Core::CheckChar(int c)
 {
-	if (c == '%' || (c >= '(' && c <= '9') || c == ';' || c == '=' || c == '?' || c == '^' || c == '[' || c == ']')
+	if (c == ' ' || c == '%' || (c >= '(' && c <= '9') || c == ';' || c == '=' || c == '?' || c == '^' || c == '[' || c == ']')
 		return true;
 	return false;
 }
