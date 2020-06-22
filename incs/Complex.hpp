@@ -15,6 +15,9 @@ class Complex : public Type
 
 		double GetReal(void) const;
 		double GetIma(void) const;
+
+		static Complex EvalExpr(std::string str);
+
 		std::string ToPrint() const;
 		static void Check(std::string & str);
 	private:

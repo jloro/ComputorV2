@@ -303,16 +303,19 @@ void Matrix::CheckMatrix(std::string str)
 	std::string tmp = str;
 	int col = -1;
 
+	if (!std::regex_search(tmp, m, std::regex("\\[(?:(?:\\[[^\\]]*\\])(?:;|\\]))+")))
+		throw std::runtime_error("Syntax error.");
 	while (std::regex_search(tmp, m, std::regex("\\[[^\\]\\[]*\\]")))
 	{
+		printw("%s\n", str.c_str());
 		tmp = m[0].str().c_str();
 		if (col == -1)
 			col = std::count(tmp.begin(), tmp.end(), ',');
 		else if (col != std::count(tmp.begin(), tmp.end(), ','))
 			throw std::runtime_error("Syntax error: Matrix \""+str+"\" don't have same number of columns.");
 		tmp = m.suffix();
+		str.erase(str.find(m.str()), m.length());
 	}
-	//if (str.find()
 }
 
 void Matrix::Check(std::string & str)

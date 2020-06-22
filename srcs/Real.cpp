@@ -155,6 +155,8 @@ double Real::EvalExpr(std::string str)
 		}
 		else
 		{
+			if (str[0] == '-' && str[1] == '-')
+				str.erase(str.begin(), str.begin() + 1);
 			if (str.find("^") != std::string::npos)
 			{
 				std::string::size_type tmp;
@@ -189,6 +191,9 @@ void Real::Check(std::string & str)
 		else
 			throw std::runtime_error("Syntax error: power not valid.");
 	}
+
+	if (std::count(str.begin(), str.end(), '-') != 1)
+		throw std::runtime_error("Syntax error: too many minus.");
 
 	for (auto it = str.begin(); it != str.end(); it++)
 	{
