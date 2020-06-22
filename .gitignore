@@ -6,6 +6,8 @@
 *.lo
 *.o
 *.obj
+.obj/
+computorV2
 
 # Precompiled Headers
 *.gch
@@ -30,3 +32,9 @@
 *.exe
 *.out
 *.app
+
+#valgrind
+*.dSYM/
+
+#historic
+.historic.txt
