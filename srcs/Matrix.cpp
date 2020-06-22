@@ -88,7 +88,9 @@ std::string Matrix::ToPrint() const
 			if (j != _n - 1)
 				ret += " , ";
 		}
-		ret += " ]\n";
+		ret += " ]";
+		if (i != _m - 1)
+			ret += "\n";
 	}
 	return ret;
 }
@@ -310,6 +312,7 @@ void Matrix::CheckMatrix(std::string str)
 			throw std::runtime_error("Syntax error: Matrix \""+str+"\" don't have same number of columns.");
 		tmp = m.suffix();
 	}
+	//if (str.find()
 }
 
 void Matrix::Check(std::string & str)
@@ -318,7 +321,7 @@ void Matrix::Check(std::string & str)
 	std::string tmp;
 	Matrix leftMat, rightMat;
 
-	while (std::regex_search(str, m, std::regex("(\\[(?:(?:\\[[^\\]]*\\])(?:;|\\]))+)(?:\\^\\d+)?(?:\\*)(\\[(?:(?:\\[[^\\]]*\\])(?:;|\\]))+)(?:\\^\\d+)?")))
+	while (std::regex_search(str, m, std::regex("(\\[(?:(?:\\[[^\\]]*\\])(?:;|\\]))+(?:\\^\\d+)?)(?:\\*)(\\[(?:(?:\\[[^\\]]*\\])(?:;|\\]))+(?:\\^\\d+)?)")))
 	{
 		std::string left = m[1].str(), right = m[2].str();
 		CheckMatrix(left);
@@ -331,7 +334,7 @@ void Matrix::Check(std::string & str)
 		str.insert(m.position(), Matrix(leftMat.GetLines(), rightMat.GetCol()).ToString());
 	}
 
-	while (std::regex_search(str, m, std::regex("(\\[(?:(?:\\[[^\\]]*\\])(?:;|\\]))+)(?:\\^\\d+)?(?:\\*\\*|\\+|-)(\\[(?:(?:\\[[^\\]]*\\])(?:;|\\]))+)(?:\\^\\d+)?")))
+	while (std::regex_search(str, m, std::regex("(\\[(?:(?:\\[[^\\]]*\\])(?:;|\\]))+(?:\\^\\d+)?)(?:\\*\\*|\\+|-)(\\[(?:(?:\\[[^\\]]*\\])(?:;|\\]))+(?:\\^\\d+)?)")))
 	{
 		std::string left = m[1].str(), right = m[2].str();
 		CheckMatrix(left);
@@ -343,7 +346,5 @@ void Matrix::Check(std::string & str)
 		str.erase(m.position(), m.length());
 		str.insert(m.position(), Matrix(leftMat.GetLines(), rightMat.GetCol()).ToString());
 	}
-	printw("%s\n", str.c_str());
-	if (str.compare("") == 0)
-		throw std::runtime_error("Syntax error.");
+	CheckMatrix(str);
 }

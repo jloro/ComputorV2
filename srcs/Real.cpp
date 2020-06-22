@@ -181,6 +181,15 @@ void Real::Check(std::string & str)
 	if (str.compare("") == 0)
 		throw std::runtime_error("Syntax error.");
 
+	if (str.find("^") != std::string::npos)
+	{
+		std::string tmp = str.substr(str.find("^") + 1);
+		if (std::regex_search(tmp, m, std::regex("^-?\\d+(?:\\.\\d+)?")))
+			str.erase(str.find(m.str()) - 1, m.length() + 1);
+		else
+			throw std::runtime_error("Syntax error: power not valid.");
+	}
+
 	for (auto it = str.begin(); it != str.end(); it++)
 	{
 		if (isdigit(*it) == 0 && (*it) != '-')
