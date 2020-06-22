@@ -119,7 +119,7 @@ void Core::Checker()
 		std::string name = _cmd.substr(0, _cmd.find('='));
 		if (name.compare("i") == 0)
 			throw std::runtime_error("Syntax error: variable name can't be 'i'.");
-		if (std::any_of(name.begin(), name.end(), [](int c) { return isalpha(c) != 0; }) || name.compare("") == 0)
+		if (std::any_of(name.begin(), name.end(), [](int c) { return isalpha(c) == 0; }) || name.compare("") == 0)
 			throw std::runtime_error("Syntax error: variable name must be only letters.");
 	}
 
