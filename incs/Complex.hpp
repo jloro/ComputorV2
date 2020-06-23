@@ -4,6 +4,7 @@
 # include <iostream>
 # include <string>
 # include "Type.hpp"
+# include <regex>
 
 class Complex : public Type
 {
@@ -11,6 +12,17 @@ class Complex : public Type
 		Complex(void);
 		Complex(double r, double i);
 
+		Complex & operator=(const Complex & rhs);
+		Complex & operator+=(const Complex & rhs);
+		Complex & operator+=(const double & rhs);
+		Complex operator+(const Complex & rhs);
+		Complex operator+(const double & rhs);
+		Complex operator-(const Complex & rhs);
+		Complex operator-(const double & rhs);
+		Complex operator/(const Complex & rhs);
+		Complex operator/(const double & rhs);
+		Complex operator*(const Complex & rhs);
+		Complex operator*(const double & rhs);
 		virtual	~Complex();
 
 		double GetReal(void) const;
@@ -23,16 +35,9 @@ class Complex : public Type
 	private:
 		double	_r;
 		double	_i;
+		static Complex CalcComplex(std::string str);
 };
 
 std::ostream & operator<<(std::ostream & o, Complex & rhs);
-Complex operator+(Complex lhs, Complex & rhs);
-Complex operator+(Complex lhs, double & rhs);
-Complex operator-(Complex lhs, Complex & rhs);
-Complex operator-(Complex lhs, double & rhs);
-Complex operator/(Complex lhs, Complex & rhs);
-Complex operator/(Complex lhs, double & rhs);
-Complex operator*(Complex lhs, Complex & rhs);
-Complex operator*(Complex lhs, double & rhs);
 
 #endif

@@ -6,6 +6,7 @@
 #include "Real.hpp"
 #include "Matrix.hpp"
 #include <sstream>
+#include "Complex.hpp"
 
 #define FCT "(\\w+\\(\\w\\))="
 
@@ -62,6 +63,10 @@ void Core::Assignation()
 		printw("%s\n", value.ToPrint().c_str());
 		_map[Core::ToLower(_cmd.substr(0, _cmd.find("=")))] = new Matrix(value.ToString());
 	}
+	else if (_cmd.substr(_cmd.find("=") + 1).find("i") != std::string::npos)
+	{
+		Complex::EvalExpr(_cmd.substr(_cmd.find("=") + 1));
+	}
 	else
 	{
 		double value = Real::EvalExpr(_cmd.substr(_cmd.find("=") + 1));
@@ -75,12 +80,18 @@ void Core::ReplaceVar()
 	std::smatch m;
 	std::string str, value;
 	int pos;
+	
 	if (std::regex_match(_cmd, std::regex(".*\\?$")))
 		str = _cmd.substr(0, _cmd.find("="));
 	else
 		str = _cmd.substr(_cmd.find("=") + 1);
 	while (std::regex_search(str, m, std::regex("[a-z]+")))
 	{
+		if (m.str().compare("i") == 0)
+		{
+			str.erase(m.position(), m.length());
+			continue;
+		}
 		Type* var = _map[Core::ToLower(m.str())];
 		if (var->GetType() == eType::Real)
 			value = Core::Dtoa(static_cast<Real*>(var)->GetValue());
