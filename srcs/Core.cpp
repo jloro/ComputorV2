@@ -228,7 +228,7 @@ void Core::Loop()
 	{
 		printw("> ");
 		ReadLine(_historic);
-		if (_cmd.compare("exit") == 0)
+		if (_cmd.compare("exit") == 0 || _cmd.compare("q") == 0)
 			break;
 		_historic.Add(_cmd);
 		printw("\n");

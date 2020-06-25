@@ -123,7 +123,11 @@ void Real::Calc(std::string & str, int firstSub, int endSub, int posSubcalc, int
 			throw std::runtime_error("Can't modulo by 0.");
 		ret = fmod(left, right);
 	}
-	str.insert(posSubcalc, Core::Dtoa(ret));
+
+	if (posSubcalc != 0 && Core::Dtoa(ret)[0] != '-' && str[posSubcalc - 1] != '+')
+		str.insert(posSubcalc, "+" + Core::Dtoa(ret));
+	else
+		str.insert(posSubcalc, Core::Dtoa(ret));
 }
 
 double Real::EvalExpr(std::string str)

@@ -27,6 +27,7 @@ class Complex : public Type
 
 		double GetReal(void) const;
 		double GetIma(void) const;
+		std::string ToString() const;
 
 		static Complex EvalExpr(std::string str);
 

@@ -132,37 +132,43 @@ std::string Complex::ToPrint() const
 	return ret;
 }
 
+std::string Complex::ToString() const
+{ 
+	std::string ret;
+
+	if (_r != 0)
+		ret += Core::Dtoa(_r);
+	if (_i < 0)
+	{
+		if (_r != 0)
+		{
+			ret += "-";
+			ret += Core::Dtoa(fabs(_i));
+		}
+		else if (_i != -1)
+			ret += Core::Dtoa(_i);
+		else
+			ret += "-";
+	}
+	else
+	{
+		if (_r != 0)
+			ret += "+";
+		if (_i != 1)
+			ret += Core::Dtoa(_i);
+	}
+	ret += "i";
+	return ret;
+}
+
 void Complex::Check(std::string & str)
 {
 	(void)str;
 }
-/*
-void Complex::CalcReal(std::string & str, std::smatch m, Complex & x)
-{
-	printw("str:%s\nm:%s\n", str.c_str(), m.str().c_str());
-	x += std::stod(m.str());
-	str.erase(m.position(), m.length());
-	printw("x:%s\n",x.ToPrint().c_str());
-}
 
-void Complex::CalcIma(std::string & str, std::smatch m, Complex & x)
-{
-	Complex curr;
-	printw("str:%s\nm:%s\n", str.c_str(), m.str().c_str());
-	if (m.str().compare("i") == 0 || m.str().compare("+i") == 0)
-		curr = Complex(0, 1);
-	else if (m.str().compare("-i") == 0)
-		curr = Complex(0, -1);
-	else
-		curr = Complex(0, std::stod(m.str().erase(m.str().find('i'), 1)));
-	x += curr;
-	str.erase(m.position(), m.length());
-	printw("x:%s\n",x.ToPrint().c_str());
-}
-*/
 Complex Complex::CalcComplex(std::string str)
 {
-	std::string i, tmp;
+	std::string i = "0", tmp;
 	std::smatch m;
 
 	tmp = str;
@@ -176,14 +182,17 @@ Complex Complex::CalcComplex(std::string str)
 			i += "-1";
 		else
 			i += m.str();
-		if (m.str()[0] != '-')
+		if (m.str()[0] != '-' && str.find(m.str()) != 0)
 			str.erase(str.find(m.str()) - 1, m.length() + 1);
 		else
 			str.erase(str.find(m.str()), m.length());
 		tmp = m.suffix();
 	}
 	i.erase(std::remove(i.begin(), i.end(), 'i'), i.end());
-	printw("i:%s\nr:%s\n", i.c_str(), str.c_str());
+	if (str.length() == 0)
+		str = "0";
+	if (str[0] == '+')
+		str.erase(str.begin());
 	return Complex(Real::EvalExpr(str), Real::EvalExpr(i));
 }
 
@@ -209,9 +218,36 @@ Complex Complex::EvalExpr(std::string str)
 				for (auto x:m)
 					Calc(str, str.find(x.str()), x.str().length(), str.find(x.str()), str.find(x.str()), x.str().length());
 		}
+		*/
+		if (std::regex_search(str, m, std::regex("(?:^|\\+|\\-)[^\\+\\-\\*\\/]*(?:\\*|\\/)[^\\+\\-\\*\\/]*")))
+		{
+			std::string match = m.str();
+			Complex res;
+			int split;
+			if (match[0] == '+')
+				match.erase(0, 1);
+			if (match.find("*") != std::string::npos)
+				split = match.find("*");
+			else
+				split = match.find("/");
+			Complex left = Complex::CalcComplex(match.substr(0, split));
+			Complex right = Complex::CalcComplex(match.substr(split + 1));
+			if (match.find("*") != std::string::npos)
+				res = left * right;
+			else if (match.find("/") != std::string::npos)
+			{
+				if (right.ToPrint().length() == 0)
+					throw std::runtime_error("Can't divide by 0.");
+				res = left / right;
+			}
+			str.erase(m.position(), m.length());
+			if (m.position() != 0 && res.ToString()[0] != '-')
+				str.insert(m.position(), "+" + res.ToString());
+			else
+				str.insert(m.position(), res.ToString());
+		}
 		else
 		{
-		*/
 			printw("%s\n", Complex::CalcComplex(str).ToPrint().c_str());
 			/*
 			if (str[0] == '-' && str[1] == '-')
@@ -226,7 +262,7 @@ Complex Complex::EvalExpr(std::string str)
 			}
 			*/
 			break;
-		//}
+		}
 	}
 	return Complex(0, 0);
 }
