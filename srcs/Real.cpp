@@ -179,7 +179,6 @@ void Real::Check(std::string & str)
 {
 	std::smatch m;
 
-
 	while (std::regex_search(str, m, std::regex("-?\\d+(?:\\.\\d+)?(?:\\^-?\\d+(?:\\.\\d+)?)?(?:\\*|/|\\+|-|%)-?\\d+(?:\\.\\d+)?(?:\\^-?\\d+(?:\\.\\d+)?)?")))
 	{
 		str.erase(m.position(), m.length());

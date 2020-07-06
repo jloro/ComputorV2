@@ -104,6 +104,8 @@ void Core::ReplaceVar()
 			value = Core::Dtoa(static_cast<Real*>(var)->GetValue());
 		else if (var->GetType() == eType::Matrix)
 			value = static_cast<Matrix*>(var)->ToString();
+		else if (var->GetType() == eType::Complex)
+			value = static_cast<Complex*>(var)->ToString();
 		if (!std::regex_match(_cmd, std::regex(".*\\?$")))
 			pos = _cmd.find(m.str(), _cmd.find('='));
 		else
