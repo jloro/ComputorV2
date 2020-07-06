@@ -208,129 +208,29 @@ Complex Complex::CalcComplex(std::string str)
 	return Complex(Real::EvalExpr(str), Real::EvalExpr(i));
 }
 
-/*
-Complex Complex::CalcBrackets(std::string & str, std::string brackets, int posFirstP, int posLastP)
+Complex Complex::CalcBrackets(std::string & str, std::string brackets, int posFirstP, int posLastP, std::map<std::string, Complex> & var)
 {
-	int posOp = 0, first, last;
-	Complex right, left, res;
-	printw("a\n");
-	printw("str:%s\nb:%s\n", str.c_str(), brackets.c_str());
-	if (str[posLastP + 1] == '*' || str[posLastP + 1] == '/')
-	{
-		first = posFirstP;
-		left = Complex::EvalExpr(brackets);
-		posOp = posLastP + 1;
-		if (str[posOp + 1] == '(')
-		{
-			right = Complex::EvalExpr(str.substr(posOp + 1, str.find(')', posOp + 1)));
-			last = str.find(')', posOp + 1) - first;
-		}
-		else if (str[posOp + 1] == '-')
-		{
-			right = Complex::EvalExpr(str.substr(posOp + 1, str.find_first_of("+-/*", posOp + 2) - posOp - 1));
-			if (str.find_first_of("+-/*", posOp + 2) != std::string::npos)
-				last = str.find_first_of("+-/*", posOp + 2) - first;
-			else
-				last = str.length() - first;
-		}
-		else
-		{
-			right = Complex::EvalExpr(str.substr(posOp + 1, str.find_first_of("+-/*", posOp + 1) - posOp - 1));
-			if (str.find_first_of("+-/*", posOp + 1) != std::string::npos)
-				last = str.find_first_of("+-/*", posOp + 1) - first;
-			else
-				last = str.length() - first;
-		}
-	}
-	else if (str[posFirstP - 1] == '*' || str[posFirstP - 1] == '/')
-	{
-		right = Complex::EvalExpr(brackets);
-		posOp = posFirstP - 1;
-		if (str[posOp - 1] == ')')
-		{
-			left = Complex::EvalExpr(str.substr(str.rfind('(', posOp - 1) + 1, posOp - 2 - str.rfind('(', posOp - 1)));
-		}
-		else if (str.find_last_of("+-/*", posOp - 1) != std::string::npos)
-		{
-			left = Complex::EvalExpr(str.substr(str.find_last_of("+-/*", posOp - 1), posOp - str.find_last_of("+-/*", posOp - 1)));
-		}
-		else
-		{
-			left = Complex::EvalExpr(str.substr(0, posOp));
-		}
-	}
-	else if (str[posFirstP - 1] == '-' || str[posFirstP - 1] == '+')
-	{
-		right = Complex::EvalExpr(brackets);
-		posOp = posFirstP - 1;
-		if (str[posOp - 1] == ')')
-		{
-			left = Complex::EvalExpr(str.substr(str.rfind('(', posOp - 1) + 1, posOp - 1 - str.rfind('(', posOp - 1) - 1));
-		}
-		else if (posOp != 0 && str.find_last_of("+-/*", posOp - 1) != std::string::npos)
-		{
-			left = Complex::EvalExpr(str.substr(str.find_last_of("+-/*", posOp - 1), posOp - str.find_last_of("+-/*", posOp - 1)));
-		}
-		else if (posOp == 0)
-		{
-			left = Complex::EvalExpr("0");
-		}
-		else
-		{
-			left = Complex::EvalExpr(str.substr(0, posOp));
-		}
-	}
-	else if (str[posLastP + 1] == '-' || str[posLastP + 1] == '+')
-	{
-		left = Complex::EvalExpr(brackets);
-		posOp = posLastP + 1;
-		if (str[posOp + 1] == '(')
-			right = Complex::EvalExpr(str.substr(posOp + 1, str.find(')', posOp + 1)));
-		else if (str[posOp + 1] == '-')
-			right = Complex::EvalExpr(str.substr(posOp + 1, str.find_first_of("+-/*", posOp + 2) - posOp - 1));
-		else
-			right = Complex::EvalExpr(str.substr(posOp + 1, str.find_first_of("+-/*", posOp + 1) - posOp - 1));
-	}
-	printw("avant calc\n");
-	if (str[posOp] == '-')
-		res = left - right;
-	else if (str[posOp] == '+')
-		res = left + right;
-	else if (str[posOp] == '*')
-		res = left * right;
-	else if (str[posOp] == '/')
-	{
-		if (right.ToString().compare("0") == 0)
-			throw std::runtime_error("Can't divide by 0.");
-		res = left / right;
-	}
-	printw("left:%s\nright:%s\n", left.ToPrint().c_str(), right.ToPrint().c_str());
-	printw("first:%d\nlast:%d\n", first, last);
-	str.erase(first, last);
-	printw("strafter:%s\n", str.c_str());
-	//if (first != 0 && str[first - 1] != '-' && str[first - 1] != '+')
-//		str.insert(first, "+" + res.ToString());
-//	else
-	if (str[first - 1] == '*' || str[first - 1] == '/' || str[first + 1] == '*' || str[first + 1] == '/')
-		str.insert(first, "("+res.ToString()+")");
+	std::string key;
+	if (var.size() == 0)
+		key = "A";
 	else
-		str.insert(first, res.ToString());
-	return res;
-}
-*/
-Complex Complex::CalcBrackets(std::string & str, std::string brackets, int posFirstP, int posLastP)
-{
-	posFirstP++;
-	posLastP++;
-	printw("str:%s\nb:%s\n", str.c_str(), brackets.c_str());
+	{
+		key = 'A' + var.size();
+	}
+	var[key] = Complex::EvalExpr(brackets, var);
+	str.erase(posFirstP, posLastP - posFirstP + 1);
+	str.insert(posFirstP, key);
 	return Complex(0, 0);
 }
 
-Complex Complex::EvalExpr(std::string str)
+Complex Complex::EvalExpr(std::string str, std::map<std::string, Complex> saved)
 {
 	std::smatch m;
 	Complex x;
+	std::map<std::string, Complex> var;
 
+	if (saved.size() != 0)
+		var = saved;
 	while (1)
 	{
 		if (str.find_last_of("(") != std::string::npos)
@@ -338,22 +238,31 @@ Complex Complex::EvalExpr(std::string str)
 			int posFirstP = str.find_last_of("(");
 			int posLastP = str.find(")", str.find_last_of("("));
 			std::string subcalc = str.substr(posFirstP + 1, posLastP - posFirstP - 1);
-			Complex::CalcBrackets(str, subcalc, posFirstP, posLastP);
-			printw("ret:%s\nstr:%s\n", x.ToPrint().c_str(), str.c_str());
+			Complex::CalcBrackets(str, subcalc, posFirstP, posLastP, var);
 		}
-		if (std::regex_search(str, m, std::regex("(?:^|\\+|\\-)[^\\+\\-\\*\\/]*(?:\\*|\\/)[^\\+\\-\\*\\/]*")))
+		else if (std::regex_search(str, m, std::regex("(?:^|\\+|\\-)[^\\+\\-\\*\\/]*(?:\\*|\\/)[^\\+\\-\\*\\/]*")))
 		{
 			std::string match = m.str();
-			Complex res;
+			Complex res, left, right;
 			int split;
 			if (match[0] == '+')
 				match.erase(0, 1);
+
 			if (match.find("*") != std::string::npos)
 				split = match.find("*");
 			else
 				split = match.find("/");
-			Complex left = Complex::CalcComplex(match.substr(0, split));
-			Complex right = Complex::CalcComplex(match.substr(split + 1));
+
+			if (var.find(match.substr(0, split)) != var.end())
+				left = var[match.substr(0, split)];
+			else
+				left = Complex::CalcComplex(match.substr(0, split));
+
+			if (var.find(match.substr(split + 1)) != var.end())
+				right = var[match.substr(split + 1)];
+			else
+				right = Complex::CalcComplex(match.substr(split + 1));
+
 			if (match.find("*") != std::string::npos)
 				res = left * right;
 			else if (match.find("/") != std::string::npos)
@@ -363,13 +272,30 @@ Complex Complex::EvalExpr(std::string str)
 				res = left / right;
 			}
 			str.erase(m.position(), m.length());
-			if (m.position() != 0 && res.ToString()[0] != '-')
-				str.insert(m.position(), "+" + res.ToString());
-			else
+			if (str.length() == 0)
 				str.insert(m.position(), res.ToString());
+			else if (m.position() != 0)
+				str.insert(m.position(), "+("+res.ToString()+")");
+			else 
+				str.insert(m.position(), "("+res.ToString()+")");
 		}
 		else
 		{
+			while (std::regex_search(str, m, std::regex("[A-Z]")))
+			{
+				std::string match = m.str();
+				if (str[m.position() - 1] == '-')
+				{
+					str.erase(m.position() - 1, m.length() + 1);
+					Complex tmp = Complex(0, 0) - var[match];
+					str.insert(m.position() - 1, "+"+tmp.ToString());
+				}
+				else
+				{
+					str.erase(m.position(), m.length());
+					str.insert(m.position(), var[match].ToString());
+				}
+			}
 			return Complex::CalcComplex(str);
 			/*
 			if (str[0] == '-' && str[1] == '-')
