@@ -49,6 +49,10 @@ void Core::Calcul()
 	{
 		printw("%s\n", Matrix::EvalExpr(_cmd.substr(0, _cmd.find('='))).ToPrint().c_str());
 	}
+	else if (_cmd.substr(_cmd.find("=") + 1).find("i") != std::string::npos)
+	{
+		printw("%s\n", Complex::EvalExpr(_cmd.substr(0, _cmd.find('='))).ToPrint().c_str());
+	}
 	else
 	{
 		printw("%s\n", Core::Dtoa(Real::EvalExpr(_cmd.substr(0, _cmd.find('=')))).c_str());
@@ -65,7 +69,10 @@ void Core::Assignation()
 	}
 	else if (_cmd.substr(_cmd.find("=") + 1).find("i") != std::string::npos)
 	{
-		Complex::EvalExpr(_cmd.substr(_cmd.find("=") + 1));
+		Complex value = Complex::EvalExpr(_cmd.substr(_cmd.find("=") + 1));
+		printw("%s\n", value.ToPrint().c_str());
+		Complex *ret = new Complex(value.GetReal(), value.GetIma());
+		_map[Core::ToLower(_cmd.substr(0, _cmd.find("=")))] = ret;
 	}
 	else
 	{

@@ -37,8 +37,11 @@ class Complex : public Type
 		double	_r;
 		double	_i;
 		static Complex CalcComplex(std::string str);
+		static Complex CalcBrackets(std::string & str, std::string brackets, int posFirstP, int posLastP);
 };
 
 std::ostream & operator<<(std::ostream & o, Complex & rhs);
 
+Complex operator-(const double & lhs, const Complex & rhs);
+Complex operator/(const double & lhs, const Complex & rhs);
 #endif
