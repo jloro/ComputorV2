@@ -171,6 +171,8 @@ double Real::EvalExpr(std::string str)
 				double nb = std::stod(str, &tmp);
 				double power = std::stod(str.substr(tmp + 1));
 				ret = pow(nb, power);
+				if (str[0] == '-')
+					ret = -ret;
 				str = Core::Dtoa(ret);
 			}
 			break;
@@ -194,8 +196,8 @@ void Real::Check(std::string & str)
 	if (str.find("^") != std::string::npos)
 	{
 		std::string tmp = str.substr(str.find("^") + 1);
-		if (std::regex_search(tmp, m, std::regex("^-?\\d+(?:\\.\\d+)?")))
-			str.erase(str.find(m.str()) - 1, m.length() + 1);
+		if (std::regex_search(tmp, m, std::regex("-?\\d+(?:\\.\\d+)?")))
+			str.erase(str.find("^"), m.length() + 1);
 		else
 			throw std::runtime_error("Syntax error: power not valid.");
 	}

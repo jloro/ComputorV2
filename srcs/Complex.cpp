@@ -183,7 +183,15 @@ std::string Complex::ToString() const
 
 void Complex::Check(std::string & str)
 {
-	(void)str;
+	std::string::size_type pos;
+	while ((pos = str.find("i")) != std::string::npos)
+	{
+		if (isdigit(str[pos + 1]) != 0)
+			throw std::runtime_error("Syntax error.");
+
+		str.erase(pos, 1);
+	}
+	Real::Check(str);
 }
 
 Complex Complex::CalcComplex(std::string str)

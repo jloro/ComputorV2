@@ -147,6 +147,12 @@ void Core::Checker()
 	{
 		if (_map.find(m.str()) == _map.end() && m.str().compare("i") != 0) 
 			throw std::runtime_error("Syntax error: variable "+m.str()+" unknow.");
+
+		if (isdigit(_cmd[_cmd.find(m.str()) - 1]) != 0)
+			_cmd.insert(_cmd.find(m.str()), "*");
+		if (isdigit(_cmd[_cmd.find(m.str()) + m.length()]) != 0)
+			_cmd.insert(_cmd.find(m.str()) + m.length(), "*");
+
 		calc.erase(m.position(), m.length());
 		calc.insert(m.position(), "0");
 	}
@@ -164,37 +170,29 @@ void Core::Checker()
 			throw std::runtime_error("Syntax error.");
 		tmp = m.suffix();
 	}
+
 	if (std::regex_search(tmp, m, std::regex("\\d\\(")))
 		throw std::runtime_error("Syntax error.");
+
+	void (*check)(std::string&);
+
 	if (calc.find(']') != std::string::npos)
-	{
-		while (calc.find(")") != std::string::npos)
-		{
-			int posFirstP = calc.find_last_of("(");
-			int posLastP = calc.find(")", calc.rfind("("));
-			std::string subcalc = calc.substr(posFirstP + 1, posLastP - posFirstP - 1);
-			Matrix::Check(subcalc);
-			calc.erase(posFirstP, posLastP - posFirstP + 1);
-			calc.insert(posFirstP, "0");
-		}
-		Matrix::Check(calc);
-	}
+		check = Matrix::Check;
 	else if (calc.find('i') != std::string::npos)
-	{
-	}
+		check = Complex::Check;
 	else
+		check = Real::Check;
+
+	while (calc.find(")") != std::string::npos)
 	{
-		while (calc.find(")") != std::string::npos)
-		{
-			int posFirstP = calc.find_last_of("(");
-			int posLastP = calc.find(")", calc.rfind("("));
-			std::string subcalc = calc.substr(posFirstP + 1, posLastP - posFirstP - 1);
-			Real::Check(subcalc);
-			calc.erase(posFirstP, posLastP - posFirstP + 1);
-			calc.insert(posFirstP, "0");
-		}
-		Real::Check(calc);
+		int posFirstP = calc.find_last_of("(");
+		int posLastP = calc.find(")", calc.rfind("("));
+		std::string subcalc = calc.substr(posFirstP + 1, posLastP - posFirstP - 1);
+		check(subcalc);
+		calc.erase(posFirstP, posLastP - posFirstP + 1);
+		calc.insert(posFirstP, "0");
 	}
+	check(calc);
 }
 
 void Core::Exec()
