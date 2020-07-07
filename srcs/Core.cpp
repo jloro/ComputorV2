@@ -157,6 +157,15 @@ void Core::Checker()
 	while (_cmd.find(")(") != std::string::npos)
 		_cmd.insert(_cmd.find(")(") + 1, "*");
 
+	std::string tmp = _cmd;
+	while (std::regex_search(tmp, m, std::regex("\\.")))
+	{
+		if (isdigit(tmp[m.position() - 1]) == 0 || isdigit(tmp[m.position() + 1]) == 0)
+			throw std::runtime_error("Syntax error.");
+		tmp = m.suffix();
+	}
+	if (std::regex_search(tmp, m, std::regex("\\d\\(")))
+		throw std::runtime_error("Syntax error.");
 	if (calc.find(']') != std::string::npos)
 	{
 		while (calc.find(")") != std::string::npos)
@@ -175,15 +184,6 @@ void Core::Checker()
 	}
 	else
 	{
-		std::string tmp = _cmd;
-		while (std::regex_search(tmp, m, std::regex("\\.")))
-		{
-			if (isdigit(tmp[m.position() - 1]) == 0 || isdigit(tmp[m.position() + 1]) == 0)
-				throw std::runtime_error("Syntax error.");
-			tmp = m.suffix();
-		}
-		if (std::regex_search(tmp, m, std::regex("\\d\\(")))
-			throw std::runtime_error("Syntax error.");
 		while (calc.find(")") != std::string::npos)
 		{
 			int posFirstP = calc.find_last_of("(");
