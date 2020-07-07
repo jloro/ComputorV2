@@ -148,10 +148,15 @@ void Core::Checker()
 		if (_map.find(m.str()) == _map.end() && m.str().compare("i") != 0) 
 			throw std::runtime_error("Syntax error: variable "+m.str()+" unknow.");
 
-		if (isdigit(_cmd[_cmd.find(m.str()) - 1]) != 0)
-			_cmd.insert(_cmd.find(m.str()), "*");
-		if (isdigit(_cmd[_cmd.find(m.str()) + m.length()]) != 0)
-			_cmd.insert(_cmd.find(m.str()) + m.length(), "*");
+		//2t => 2*, while because if 2 times same var
+		std::string::size_type pos = -1;
+		while ((pos = _cmd.find(m.str(), pos + 1)) != std::string::npos)
+		{
+			if (isdigit(_cmd[pos - 1]) != 0)
+				_cmd.insert(pos, "*");
+			if (isdigit(_cmd[pos + m.length()]) != 0)
+				_cmd.insert(pos + m.length(), "*");
+		}
 
 		calc.erase(m.position(), m.length());
 		calc.insert(m.position(), "0");
