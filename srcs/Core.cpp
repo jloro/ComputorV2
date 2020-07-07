@@ -105,7 +105,7 @@ void Core::ReplaceVar()
 		else if (var->GetType() == eType::Matrix)
 			value = static_cast<Matrix*>(var)->ToString();
 		else if (var->GetType() == eType::Complex)
-			value = static_cast<Complex*>(var)->ToString();
+			value = "("+static_cast<Complex*>(var)->ToString()+")";
 		if (!std::regex_match(_cmd, std::regex(".*\\?$")))
 			pos = _cmd.find(m.str(), _cmd.find('='));
 		else
@@ -143,7 +143,7 @@ void Core::Checker()
 			throw std::runtime_error("Syntax error: variable name must be only letters.");
 	}
 
-	while (std::regex_search(calc, m, std::regex("[a-z]+")))
+	while (std::regex_search(calc, m, std::regex("(?:[a-h]|[j-z])|(?:[a-z]{2,})")))
 	{
 		if (_map.find(m.str()) == _map.end() && m.str().compare("i") != 0) 
 			throw std::runtime_error("Syntax error: variable "+m.str()+" unknow.");

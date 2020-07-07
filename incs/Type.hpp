@@ -21,6 +21,7 @@ class Type
 
 		eType GetType() const;
 		virtual std::string	ToPrint() const = 0;
+		virtual std::string	ToString() const = 0;
 	protected:
 		eType		_type;
 };

@@ -308,29 +308,56 @@ Complex Complex::EvalExpr(std::string str, std::map<std::string, Complex> saved)
 				std::string match = m.str();
 				if (str[m.position() - 1] == '-')
 				{
-					str.erase(m.position() - 1, m.length() + 1);
-					Complex tmp = Complex(0, 0) - var[match];
-					if (tmp.ToString()[0] != '-')
-						str.insert(m.position() - 1, "+"+tmp.ToString());
+					Complex n;
+					if (str[m.position() + 1] == '^')
+					{
+						std::string tmp;
+						if (str.find_first_of("*/-+%", m.position() + 2) != std::string::npos)
+							tmp = str.substr(m.position() + 2, str.find_first_of("*/-+%", m.position() + 2) - m.position() - 2);
+						else
+							tmp = str.substr(m.position() + 2);
+						int power = stod(tmp);
+						str.erase(m.position() - 1, tmp.length() + 3);
+						n = var[match];
+						Complex tmpN = n;
+						for (int i = 1; i < power; i++)
+							n = n * tmpN;
+						n = Complex(0, 0) - n;
+					}
 					else
-						str.insert(m.position() - 1, tmp.ToString());
+					{
+						str.erase(m.position() - 1, m.length() + 1);
+						Complex n = Complex(0, 0) - var[match];
+					}
+					if (n.ToString()[0] != '-')
+						str.insert(m.position() - 1, "+" + n.ToString());
+					else
+						str.insert(m.position() - 1, n.ToString());
 				}
 				else
 				{
-					str.erase(m.position(), m.length());
-					str.insert(m.position(), var[match].ToString());
+					if (str[m.position() + 1] == '^')
+					{
+						std::string tmp;
+						if (str.find_first_of("*/-+%", m.position() + 2) != std::string::npos)
+							tmp = str.substr(m.position() + 2, str.find_first_of("*/-+%", m.position() + 2) - m.position() - 2);
+						else
+							tmp = str.substr(m.position() + 2);
+						int power = stod(tmp);
+						str.erase(m.position(), tmp.length() + 2);
+						Complex n = var[match];
+						Complex tmpN = n;
+						for (int i = 1; i < power; i++)
+							n = n * tmpN;
+						str.insert(m.position(), n.ToString());
+					}
+					else
+					{
+						str.erase(m.position(), m.length());
+						str.insert(m.position(), var[match].ToString());
+					}
 				}
 			}
-			/*
-			if (str.find("^") != std::string::npos)
-			{
-				std::string::size_type tmp;
-				double nb = std::stod(str, &tmp);
-				double power = std::stod(str.substr(tmp + 1));
-				ret = pow(nb, power);
-				str = Core::Dtoa(ret);
-			}
-			*/
 			break;
 		}
 	}

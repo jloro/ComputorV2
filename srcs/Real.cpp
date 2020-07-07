@@ -82,7 +82,11 @@ std::string Real::ToPrint() const
 {
 	return Core::Dtoa(_v);
 }
-#include "ncurses.h"
+std::string Real::ToString() const
+{
+	return Core::Dtoa(_v);
+}
+
 void Real::Calc(std::string & str, int firstSub, int endSub, int posSubcalc, int firstEra, int endEra)
 {
 	double ret = 0, left, right;
@@ -174,7 +178,7 @@ double Real::EvalExpr(std::string str)
 	}
 	return std::stod(str);
 }
-
+#include "ncurses.h"
 void Real::Check(std::string & str)
 {
 	std::smatch m;

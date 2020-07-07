@@ -25,6 +25,7 @@ class Real : public Type
 
 		double	GetValue() const;
 		std::string	ToPrint() const;
+		std::string	ToString() const;
 		static void Check(std::string & str);
 
 		static double EvalExpr(std::string str);
