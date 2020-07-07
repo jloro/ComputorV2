@@ -190,6 +190,7 @@ void Complex::Check(std::string & str)
 			throw std::runtime_error("Syntax error.");
 
 		str.erase(pos, 1);
+		str.insert(pos, "0");
 	}
 	Real::Check(str);
 }
@@ -200,7 +201,7 @@ Complex Complex::CalcComplex(std::string str)
 	std::smatch m;
 
 	tmp = str;
-	while (std::regex_search(tmp, m, std::regex("(?:-?\\d+(?:\\.\\d+)?(?:\\^\\d+)?)?i(?:\\^\\d+)?")))
+	while (std::regex_search(tmp, m, std::regex("-?(?:\\d+(?:\\.\\d+)?(?:\\^\\d+)?)?i(?:\\^\\d+)?")))
 	{
 		std::string match = m.str();
 		if (match[0] != '-' && i.length() != 0)
