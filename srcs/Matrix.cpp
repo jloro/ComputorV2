@@ -335,8 +335,7 @@ void Matrix::Check(std::string & str)
 		rightMat = Matrix(right);
 		if (leftMat.GetCol() != rightMat.GetLines())
 			throw std::runtime_error("Syntax error: Number of column of left matrix ust be equal to number of right's line.");
-		str.erase(m.position(), m.length());
-		str.insert(m.position(), Matrix(leftMat.GetLines(), rightMat.GetCol()).ToString());
+		str.replace(m.position(), m.length(), Matrix(leftMat.GetLines(), rightMat.GetCol()).ToString());
 	}
 
 	while (std::regex_search(str, m, std::regex("(\\[(?:(?:\\[[^\\]]*\\])(?:;|\\]))+(?:\\^\\d+)?)(?:\\*\\*|\\+|-)(\\[(?:(?:\\[[^\\]]*\\])(?:;|\\]))+(?:\\^\\d+)?)")))
@@ -348,8 +347,7 @@ void Matrix::Check(std::string & str)
 		rightMat = Matrix(right);
 		if (leftMat.GetLines() != rightMat.GetLines() || leftMat.GetCol() != rightMat.GetCol())
 			throw std::runtime_error("Syntax error: matrices \""+m[0].str()+"\" not the same size.");
-		str.erase(m.position(), m.length());
-		str.insert(m.position(), Matrix(leftMat.GetLines(), rightMat.GetCol()).ToString());
+		str.replace(m.position(), m.length(), Matrix(leftMat.GetLines(), rightMat.GetCol()).ToString());
 	}
 	CheckMatrix(str);
 }

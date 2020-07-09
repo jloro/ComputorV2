@@ -189,8 +189,7 @@ void Complex::Check(std::string & str)
 		if (isdigit(str[pos + 1]) != 0)
 			throw std::runtime_error("Syntax error.");
 
-		str.erase(pos, 1);
-		str.insert(pos, "0");
+		str.replace(pos, 1, "0");
 	}
 	Real::Check(str);
 }
@@ -258,8 +257,7 @@ Complex Complex::EvalExpr(std::string str, std::map<std::string, Complex> saved)
 			std::string key = "A";
 			key[0] += var.size();
 			var[key] = Complex::EvalExpr(subcalc, var);
-			str.erase(posFirstP, posLastP - posFirstP + 1);
-			str.insert(posFirstP, key);
+			str.replace(posFirstP, posLastP - posFirstP + 1, key);
 		}
 		else if (std::regex_search(str, m, std::regex("(?:^|\\+|\\-)[^\\+\\-\\*\\/]*(?:\\*|\\/|%)[^\\+\\-\\*\\/]*")))
 		{
@@ -363,8 +361,7 @@ Complex Complex::EvalExpr(std::string str, std::map<std::string, Complex> saved)
 					}
 					else
 					{
-						str.erase(m.position(), m.length());
-						str.insert(m.position(), var[match].ToString());
+						str.replace(m.position(), m.length(), var[match].ToString());
 					}
 				}
 			}

@@ -199,8 +199,7 @@ void Real::Check(std::string & str)
 
 	while (std::regex_search(str, m, std::regex("-?\\d+(?:\\.\\d+)?(?:\\^-?\\d+(?:\\.\\d+)?)?(?:\\*|/|\\+|-|%)-?\\d+(?:\\.\\d+)?(?:\\^-?\\d+(?:\\.\\d+)?)?")))
 	{
-		str.erase(m.position(), m.length());
-		str.insert(m.position(), "0");
+		str.replace(m.position(), m.length(), "0");
 	}
 	if (str.compare("") == 0)
 		throw std::runtime_error("Syntax error.");

@@ -137,8 +137,7 @@ void Core::ReplaceVar()
 				_cmd.insert(pos + m.length(), "*");
 		}
 
-		tmp.erase(m.position(), m.length());
-		tmp.insert(m.position(), "0");
+		tmp.replace(m.position(), m.length(), "0");
 	}
 
 	int len = 0;
@@ -178,8 +177,7 @@ void Core::ReplaceVar()
 		else if (var->GetType() == eType::Complex)
 			value = "("+static_cast<Complex*>(var)->ToString()+")";
 
-		_cmd.erase(pos, len);
-		_cmd.insert(pos, value);
+		_cmd.replace(pos, len, value);
 	}
 }
 
@@ -243,8 +241,7 @@ void Core::Checker()
 		int posLastP = calc.find(")", calc.rfind("("));
 		std::string subcalc = calc.substr(posFirstP + 1, posLastP - posFirstP - 1);
 		check(subcalc);
-		calc.erase(posFirstP, posLastP - posFirstP + 1);
-		calc.insert(posFirstP, "0");
+		calc.replace(posFirstP, posLastP - posFirstP + 1, "0");
 	}
 	check(calc);
 }
