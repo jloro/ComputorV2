@@ -7,8 +7,7 @@
 #include "Matrix.hpp"
 #include <sstream>
 #include "Complex.hpp"
-
-#define FCT "(\\w+\\(\\w\\))="
+#include <stack>
 
 std::string	Core::Dtoa(double n)
 {
@@ -55,13 +54,18 @@ void Core::Calcul()
 	}
 	else
 	{
-		printw("%s\n", Core::Dtoa(Real::EvalExpr(_cmd.substr(0, _cmd.find('=')))).c_str());
+		printw("%s\n", Core::Dtoa(Real::EvalExpr(_cmd.substr(0, _cmd.find('='))).GetValue()).c_str());
 	}
 }
 
 void Core::Assignation()
 {
-	if (_cmd.find("[") != std::string::npos)
+	if (_cmd.rfind("(", _cmd.find("=")) != std::string::npos)
+	{
+		_mapFun[Core::ToLower(_cmd.substr(0, _cmd.find("(")))] = new Function(_cmd);
+		printw("%s\n", _mapFun[Core::ToLower(_cmd.substr(0, _cmd.find("(")))]->ToPrint().c_str());
+	}
+	else if (_cmd.find("[") != std::string::npos)
 	{
 		Matrix value = Matrix::EvalExpr(_cmd.substr(_cmd.find("=") + 1));
 		printw("%s\n", value.ToPrint().c_str());
@@ -76,24 +80,51 @@ void Core::Assignation()
 	}
 	else
 	{
-		double value = Real::EvalExpr(_cmd.substr(_cmd.find("=") + 1));
-		printw("%s\n", Core::Dtoa(value).c_str());
-		_map[Core::ToLower(_cmd.substr(0, _cmd.find("=")))] = new Real(value);
+		Real value = Real::EvalExpr(_cmd.substr(_cmd.find("=") + 1));
+		printw("%s\n", Core::Dtoa(value.GetValue()).c_str());
+		_map[Core::ToLower(_cmd.substr(0, _cmd.find("=")))] = new Real(value.GetValue());
 	}
 }
 
 void Core::ReplaceVar()
 {
 	//checker
+	if (_cmd.find('=') == std::string::npos)
+		throw std::runtime_error("Syntax error: no equals sign found.");
+	if (std::count(_cmd.begin(), _cmd.end(), '=') != 1)
+		throw std::runtime_error("Syntax error: multiple equals sign found.");
+
 	std::string tmp;
-	if (std::regex_match(_cmd, std::regex("\\?$")))//calcul
+	if (std::regex_match(_cmd, std::regex(".*\\?$")))//calcul
 		tmp = _cmd.substr(0, _cmd.find('='));
 	else//assignation
 		tmp = _cmd.substr(_cmd.find("=") + 1);
+
 	std::smatch m;
+
+	std::string str, value, varStr;
+	int pos;
+	bool fct = false;
+
+	if (std::regex_match(_cmd, std::regex(".*\\?$")))
+		str = _cmd.substr(0, _cmd.find("="));
+	else
+	{
+		if (_cmd.substr(0, _cmd.find('=')).find('(') != std::string::npos)
+		{
+			fct = true;
+			varStr = _cmd.substr(0, _cmd.find('=')).substr(_cmd.find('(') + 1, _cmd.find(')') - _cmd.find('(') - 1);
+			if (std::any_of(varStr.begin(), varStr.end(), [](int c) { return isalpha(c) == 0; }) || varStr.compare("") == 0)
+				throw std::runtime_error("Syntax error: variable of function name must be only letters.");
+			if (_map.find(varStr) != _map.end() || _mapFun.find(varStr) != _mapFun.end())
+				throw std::runtime_error("Error: unknown variable of function already set.");
+		}
+		str = _cmd.substr(_cmd.find("=") + 1);
+	}
+
 	while (std::regex_search(tmp, m, std::regex("(?:[a-h]|[j-z])|(?:[a-z]{2,})")))
 	{
-		if (_map.find(m.str()) == _map.end() && m.str().compare("i") != 0) 
+		if (_map.find(m.str()) == _map.end() && m.str().compare("i") != 0 && m.str().compare(varStr) != 0 && _mapFun.find(m.str()) == _mapFun.end()) 
 			throw std::runtime_error("Syntax error: variable "+m.str()+" unknow.");
 
 		//2t => 2*, while because if 2 times same var
@@ -110,38 +141,45 @@ void Core::ReplaceVar()
 		tmp.insert(m.position(), "0");
 	}
 
+	int len = 0;
 
-	std::string str, value;
-	int pos;
-	
-	if (std::regex_match(_cmd, std::regex(".*\\?$")))
-		str = _cmd.substr(0, _cmd.find("="));
-	else
-		str = _cmd.substr(_cmd.find("=") + 1);
+	std::stack<std::string> stack;
 	while (std::regex_search(str, m, std::regex("[a-z]+")))
 	{
-		if (m.str().compare("i") == 0)
+		if (m.str().compare("i") == 0 || (fct && m.str().compare(varStr) == 0))
 		{
-			str.erase(m.position(), m.length());
+			str = m.suffix();
 			continue;
 		}
-		Type* var = _map[Core::ToLower(m.str())];
-		if (var->GetType() == eType::Real)
+		stack.push(m.str());
+		str = m.suffix();
+	}
+
+	while (stack.size() != 0)
+	{
+		tmp = stack.top();
+		stack.pop();
+
+		len = tmp.length();
+		pos = _cmd.rfind(tmp);
+		Type* var = _map[Core::ToLower(tmp)];
+		if (_mapFun.find(tmp) != _mapFun.end())
+		{
+			str = _cmd.substr(pos);
+			varStr = str.substr(str.find('(') + 1, str.find(')') - str.find('(') - 1);
+			//printw("cmd:%s\n", _cmd.c_str());
+			value = "("+_mapFun[Core::ToLower(tmp)]->Solve(varStr)+")";
+			len += 2 + varStr.length();
+		}
+		else if (var->GetType() == eType::Real)
 			value = Core::Dtoa(static_cast<Real*>(var)->GetValue());
 		else if (var->GetType() == eType::Matrix)
 			value = static_cast<Matrix*>(var)->ToString();
 		else if (var->GetType() == eType::Complex)
 			value = "("+static_cast<Complex*>(var)->ToString()+")";
-		if (!std::regex_match(_cmd, std::regex(".*\\?$")))
-			pos = _cmd.find(m.str(), _cmd.find('='));
-		else
-			pos = _cmd.find(m.str());
-		_cmd.erase(pos, m.length());
-		_cmd.insert(pos, value);
 
-		pos = str.find(m.str());
-		str.erase(pos, m.length());
-		str.insert(pos, value);
+		_cmd.erase(pos, len);
+		_cmd.insert(pos, value);
 	}
 }
 
@@ -149,11 +187,6 @@ void Core::Checker()
 {
 	std::string calc;
 	std::smatch m;
-
-	if (_cmd.find('=') == std::string::npos)
-		throw std::runtime_error("Syntax error: no equals sign found.");
-	if (std::count(_cmd.begin(), _cmd.end(), '=') != 1)
-		throw std::runtime_error("Syntax error: multiple equals sign found.");
 
 	if (std::regex_match(_cmd, std::regex(".*\\?$")))//calcul
 	{
@@ -163,6 +196,14 @@ void Core::Checker()
 	{
 		calc = _cmd.substr(_cmd.find("=") + 1);
 		std::string name = _cmd.substr(0, _cmd.find('='));
+		if (name.find('(') != std::string::npos)
+		{
+			std::string var = name.substr(_cmd.find('(') + 1, _cmd.find(')') - _cmd.find('(') - 1);
+			std::string::size_type pos;
+			while ((pos = calc.find(var)) != std::string::npos)
+				calc.replace(pos, var.length(), "0");
+			name = name.substr(0, name.find('('));
+		}
 		if (name.compare("i") == 0)
 			throw std::runtime_error("Syntax error: variable name can't be 'i'.");
 		if (std::any_of(name.begin(), name.end(), [](int c) { return isalpha(c) == 0; }) || name.compare("") == 0)
@@ -170,22 +211,22 @@ void Core::Checker()
 	}
 
 	
-	if (std::count(calc.begin(), calc.end(), '(') != std::count(calc.begin(), calc.end(), ')'))
+	if (std::count(_cmd.begin(), _cmd.end(), '(') != std::count(_cmd.begin(), _cmd.end(), ')'))
 		throw std::runtime_error("Syntax error: wrong number of parenthesis.");
 
 	while (_cmd.find(")(") != std::string::npos)
 		_cmd.insert(_cmd.find(")(") + 1, "*");
 
 	std::string tmp = _cmd;
+	if (std::regex_search(tmp, m, std::regex("\\d\\(")))
+		throw std::runtime_error("Syntax error.");
+
 	while (std::regex_search(tmp, m, std::regex("\\.")))
 	{
 		if (isdigit(tmp[m.position() - 1]) == 0 || isdigit(tmp[m.position() + 1]) == 0)
 			throw std::runtime_error("Syntax error.");
 		tmp = m.suffix();
 	}
-
-	if (std::regex_search(tmp, m, std::regex("\\d\\(")))
-		throw std::runtime_error("Syntax error.");
 
 	void (*check)(std::string&);
 

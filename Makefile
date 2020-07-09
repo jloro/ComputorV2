@@ -10,6 +10,7 @@ SRC_FILES = main.cpp \
 			Type.cpp \
 			Complex.cpp \
 			Real.cpp \
+			Function.cpp \
 
 INC_FILES = Matrix.hpp \
 			Historic.hpp \
@@ -17,7 +18,7 @@ INC_FILES = Matrix.hpp \
 			Type.hpp \
 			Complex.hpp \
 			Real.cpp \
-			Regex.hpp \
+			Function.hpp \
 
 OBJ_FILES = $(SRC_FILES:.cpp=.o)
 

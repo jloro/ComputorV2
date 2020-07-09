@@ -5,6 +5,7 @@
 # include <string>
 # include <map>
 # include "Type.hpp"
+# include "Function.hpp"
 
 class Core
 {
@@ -19,7 +20,8 @@ class Core
 	private:
 		Historic _historic;
 		std::string _cmd;
-		std::map<std::string, Type*>	_map;
+		std::map<std::string, Type*>		_map;
+		std::map<std::string, Function*>	_mapFun;
 
 		void Exec();
 		void ReadLine(Historic & historic);
@@ -28,6 +30,8 @@ class Core
 		void PrintMap();
 		void ReplaceVar();
 		void Checker();
+		template<class T>
+		std::string SolveFun(std::string var);
 
 };
 

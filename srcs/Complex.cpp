@@ -237,7 +237,7 @@ Complex Complex::CalcComplex(std::string str)
 		str = "0";
 	if (str[0] == '+')
 		str.erase(str.begin());
-	return Complex(Real::EvalExpr(str+"+"+r), Real::EvalExpr(i));
+	return Complex(Real::EvalExpr(str+"+"+r).GetValue(), Real::EvalExpr(i).GetValue());
 }
 
 Complex Complex::EvalExpr(std::string str, std::map<std::string, Complex> saved)

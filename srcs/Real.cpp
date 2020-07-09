@@ -2,6 +2,7 @@
 #include <cmath>
 #include <regex>
 #include "Core.hpp"
+#include "ncurses.h"
 
 Real::Real(void) : Type(eType::Real), _v(0)
 {
@@ -73,6 +74,12 @@ Real &	Real::operator/(const double & rhs)
 	return *this;
 }
 
+Real operator-(const double & lhs, const Real & rhs)
+{
+	Real l(lhs);
+	return l - rhs;
+}
+
 double	Real::GetValue() const
 {
 	return _v;
@@ -97,6 +104,11 @@ void Real::Calc(std::string & str, int firstSub, int endSub, int posSubcalc, int
 	left = std::stod(subcalc, &tmp);
 	if (subcalc[tmp] == '^')
 	{
+		if (subcalc.rfind('-', tmp) != std::string::npos)
+		{
+			str.insert(posSubcalc, "-");
+			posSubcalc++;
+		}
 		ret = std::stod(subcalc.substr(tmp + 1), &sz);
 		left = pow(left, ret);
 		sz += tmp + 1;
@@ -134,9 +146,9 @@ void Real::Calc(std::string & str, int firstSub, int endSub, int posSubcalc, int
 		str.insert(posSubcalc, Core::Dtoa(ret));
 }
 
-double Real::EvalExpr(std::string str)
+Real Real::EvalExpr(std::string str)
 {
-	double ret = 0;
+	Real ret = 0;
 	std::smatch m;
 
 	while (1)
@@ -149,7 +161,7 @@ double Real::EvalExpr(std::string str)
 			int posSubcalc = posFirstP;
 			str.erase(posFirstP, posLastP - posFirstP + 1);
 			ret = EvalExpr(subcalc);
-			str.insert(posSubcalc, Core::Dtoa(ret));
+			str.insert(posSubcalc, Core::Dtoa(ret.GetValue()));
 		}
 		else if (std::regex_search(str, m, std::regex("-?\\d+(?:\\.\\d+)?(?:\\^-?\\d+(?:\\.\\d+)?)?(?:\\*|/|%)-?\\d+(?:\\.\\d+)?(?:\\^-?\\d+(?:\\.\\d+)?)?")))
 		{
@@ -172,15 +184,15 @@ double Real::EvalExpr(std::string str)
 				double power = std::stod(str.substr(tmp + 1));
 				ret = pow(nb, power);
 				if (str[0] == '-')
-					ret = -ret;
-				str = Core::Dtoa(ret);
+					ret = 0.0-ret;
+				str = Core::Dtoa(ret.GetValue());
 			}
 			break;
 		}
 	}
-	return std::stod(str);
+	return Real(std::stod(str));
 }
-#include "ncurses.h"
+
 void Real::Check(std::string & str)
 {
 	std::smatch m;

@@ -28,11 +28,12 @@ class Real : public Type
 		std::string	ToString() const;
 		static void Check(std::string & str);
 
-		static double EvalExpr(std::string str);
+		static Real EvalExpr(std::string str);
 	private:
 		double	_v;
 
 		static void Calc(std::string & str, int firstSub, int endSub, int posSubcalc, int firstEra, int endEra);
 };
 
+Real operator-(const double & lhs, const Real & rhs);
 #endif
