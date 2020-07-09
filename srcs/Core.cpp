@@ -84,7 +84,33 @@ void Core::Assignation()
 
 void Core::ReplaceVar()
 {
+	//checker
+	std::string tmp;
+	if (std::regex_match(_cmd, std::regex("\\?$")))//calcul
+		tmp = _cmd.substr(0, _cmd.find('='));
+	else//assignation
+		tmp = _cmd.substr(_cmd.find("=") + 1);
 	std::smatch m;
+	while (std::regex_search(tmp, m, std::regex("(?:[a-h]|[j-z])|(?:[a-z]{2,})")))
+	{
+		if (_map.find(m.str()) == _map.end() && m.str().compare("i") != 0) 
+			throw std::runtime_error("Syntax error: variable "+m.str()+" unknow.");
+
+		//2t => 2*, while because if 2 times same var
+		std::string::size_type pos = -1;
+		while ((pos = _cmd.find(m.str(), pos + 1)) != std::string::npos)
+		{
+			if (isdigit(_cmd[pos - 1]) != 0)
+				_cmd.insert(pos, "*");
+			if (isdigit(_cmd[pos + m.length()]) != 0)
+				_cmd.insert(pos + m.length(), "*");
+		}
+
+		tmp.erase(m.position(), m.length());
+		tmp.insert(m.position(), "0");
+	}
+
+
 	std::string str, value;
 	int pos;
 	
@@ -143,24 +169,6 @@ void Core::Checker()
 			throw std::runtime_error("Syntax error: variable name must be only letters.");
 	}
 
-	while (std::regex_search(calc, m, std::regex("(?:[a-h]|[j-z])|(?:[a-z]{2,})")))
-	{
-		if (_map.find(m.str()) == _map.end() && m.str().compare("i") != 0) 
-			throw std::runtime_error("Syntax error: variable "+m.str()+" unknow.");
-
-		//2t => 2*, while because if 2 times same var
-		std::string::size_type pos = -1;
-		while ((pos = _cmd.find(m.str(), pos + 1)) != std::string::npos)
-		{
-			if (isdigit(_cmd[pos - 1]) != 0)
-				_cmd.insert(pos, "*");
-			if (isdigit(_cmd[pos + m.length()]) != 0)
-				_cmd.insert(pos + m.length(), "*");
-		}
-
-		calc.erase(m.position(), m.length());
-		calc.insert(m.position(), "0");
-	}
 	
 	if (std::count(calc.begin(), calc.end(), '(') != std::count(calc.begin(), calc.end(), ')'))
 		throw std::runtime_error("Syntax error: wrong number of parenthesis.");
@@ -215,8 +223,8 @@ void Core::Exec()
 		}
 		return false;
 	}), _cmd.end());
-	Checker();
 	ReplaceVar();
+	Checker();
 	if (std::regex_match(_cmd, std::regex(".*\\?$")))
 		Calcul();
 	else

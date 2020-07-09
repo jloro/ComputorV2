@@ -336,8 +336,9 @@ Complex Complex::EvalExpr(std::string str, std::map<std::string, Complex> saved)
 					else
 					{
 						str.erase(m.position() - 1, m.length() + 1);
-						Complex n = Complex(0, 0) - var[match];
+						n = Complex(0, 0) - var[match];
 					}
+
 					if (n.ToString()[0] != '-')
 						str.insert(m.position() - 1, "+" + n.ToString());
 					else

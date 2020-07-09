@@ -324,6 +324,8 @@ void Matrix::Check(std::string & str)
 	std::string tmp;
 	Matrix leftMat, rightMat;
 
+	if (str.find("i") != std::string::npos)
+		throw std::runtime_error("Error: matrices must contain only reals.");
 	while (std::regex_search(str, m, std::regex("(\\[(?:(?:\\[[^\\]]*\\])(?:;|\\]))+(?:\\^\\d+)?)(?:\\*)(\\[(?:(?:\\[[^\\]]*\\])(?:;|\\]))+(?:\\^\\d+)?)")))
 	{
 		std::string left = m[1].str(), right = m[2].str();
