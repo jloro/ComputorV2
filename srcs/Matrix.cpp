@@ -153,11 +153,13 @@ Matrix operator*(Matrix lhs, Matrix & rhs)
 	int n = rhs.GetCol();
 	Matrix ret(m, n);
 
+	//printw("%d %d", m, n);
+	//return Matrix(1, 1);
 	for (int i = 0; i < m; i++)
 	{
 		for (int j = 0; j < n; j++)
 		{
-			for (int k = 0; k < m; k++)
+			for (int k = 0; k < lhs.GetCol(); k++)
 				ret.mat[i][j] += lhs.mat[i][k] * rhs.mat[k][j];
 		}
 	}
@@ -207,7 +209,6 @@ Matrix Matrix::HadamardProduct(Matrix lhs, Matrix & rhs)
 	{
 		for (int j = 0; j < n; j++)
 		{
-			printw("%f %f\n", lhs.mat[i][j], rhs.mat[i][j]);
 			ret.mat[i][j] = lhs.mat[i][j] * rhs.mat[i][j];
 		}
 	}
@@ -335,6 +336,7 @@ void Matrix::CheckMatrix(std::string str)
 	std::string tmp = str;
 	int col = -1;
 
+	//printw("%s\n", str.c_str());
 	if (!std::regex_search(tmp, m, std::regex("\\[(?:(?:\\[[^\\]]*\\])(?:;|\\]))+")))
 		throw std::runtime_error("Syntax error.");
 	while (std::regex_search(tmp, m, std::regex("\\[[^\\]\\[]*\\]")))
@@ -358,7 +360,7 @@ void Matrix::Check(std::string & str)
 
 	if (str.find("i") != std::string::npos)
 		throw std::runtime_error("Error: matrices must contain only reals.");
-	while (std::regex_search(str, m, std::regex("(\\[(?:(?:\\[[^\\]]*\\])(?:;|\\]))+(?:\\^\\d+)?)(?:\\*)(\\[(?:(?:\\[[^\\]]*\\])(?:;|\\]))+(?:\\^\\d+)?)")))
+	while (std::regex_search(str, m, std::regex("(\\[(?:(?:\\[[^\\]]*\\])(?:;|\\]))+(?:\\^\\d+)?)\\*\\*(\\[(?:(?:\\[[^\\]]*\\])(?:;|\\]))+(?:\\^\\d+)?)")))
 	{
 		std::string left = m[1].str(), right = m[2].str();
 		CheckMatrix(left);
@@ -370,7 +372,7 @@ void Matrix::Check(std::string & str)
 		str.replace(m.position(), m.length(), Matrix(leftMat.GetLines(), rightMat.GetCol()).ToString());
 	}
 
-	while (std::regex_search(str, m, std::regex("(\\[(?:(?:\\[[^\\]]*\\])(?:;|\\]))+(?:\\^\\d+)?)(?:\\*\\*|\\+|-)(\\[(?:(?:\\[[^\\]]*\\])(?:;|\\]))+(?:\\^\\d+)?)")))
+	while (std::regex_search(str, m, std::regex("(\\[(?:(?:\\[[^\\]]*\\])(?:;|\\]))+(?:\\^\\d+)?)(?:\\*|\\+|-)(\\[(?:(?:\\[[^\\]]*\\])(?:;|\\]))+(?:\\^\\d+)?)")))
 	{
 		std::string left = m[1].str(), right = m[2].str();
 		CheckMatrix(left);

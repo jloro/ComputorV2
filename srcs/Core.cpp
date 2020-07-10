@@ -114,8 +114,8 @@ void Core::ReplaceVar()
 		{
 			fct = true;
 			varStr = _cmd.substr(0, _cmd.find('=')).substr(_cmd.find('(') + 1, _cmd.find(')') - _cmd.find('(') - 1);
-			if (std::any_of(varStr.begin(), varStr.end(), [](int c) { return isalpha(c) == 0; }) || varStr.compare("") == 0)
-				throw std::runtime_error("Syntax error: variable of function name must be only letters.");
+			if (std::any_of(varStr.begin(), varStr.end(), [](int c) { return isalpha(c) == 0; }) || varStr.compare("") == 0 || varStr.compare("i") == 0)
+				throw std::runtime_error("Syntax error: variable of function incorrect.");
 		}
 		str = _cmd.substr(_cmd.find("=") + 1);
 	}

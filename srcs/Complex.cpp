@@ -263,9 +263,12 @@ Complex Complex::EvalExpr(std::string str, std::map<std::string, Complex> saved)
 		{
 			std::string match = m.str();
 			Complex res, left, right;
-			int split;
+			int split, start = 0;
+
 			if (match[0] == '+')
 				match.erase(0, 1);
+			else if (match[0] == '-')
+				start = 1;
 
 			if (match.find("*") != std::string::npos)
 				split = match.find("*");
@@ -274,15 +277,53 @@ Complex Complex::EvalExpr(std::string str, std::map<std::string, Complex> saved)
 			else 
 				split = match.find("%");
 
-			if (var.find(match.substr(0, split)) != var.end())
-				left = var[match.substr(0, split)];
-			else
-				left = Complex::CalcComplex(match.substr(0, split));
+			bool doPower = false;
 
-			if (var.find(match.substr(split + 1)) != var.end())
-				right = var[match.substr(split + 1)];
+			if (var.find(match.substr(start, split - start)) != var.end() && match.substr(start, split - start).find('^') == std::string::npos)
+			{
+				left = var[match.substr(start, split - start)];
+				doPower = true;
+			}
+			else if (var.find(match.substr(start, match.substr(start, split - start).find('^'))) != var.end())
+			{
+				left = var[match.substr(start, match.substr(start, split - start).find('^'))];
+				doPower = true;
+			}
 			else
-				right = Complex::CalcComplex(match.substr(split + 1));
+				left = Complex::CalcComplex(match.substr(start, split - start));
+
+			if (match.substr(0, split).find('^') != std::string::npos && doPower)
+			{
+				int power = stod(match.substr(match.find('^') + 1, split - match.find('^') - 1));
+				Complex tmp = left;
+				for (int i = 1; i < power; i++)
+					left = left * tmp;
+			}
+
+			start = 0;
+			doPower = false;
+			if (match[split + 1] == '-')
+				start = 1;
+			if (var.find(match.substr(split + start + 1)) != var.end() && match.substr(split).find('^') == std::string::npos)
+			{
+				doPower = true;
+				right = var[match.substr(split + start + 1)];
+			}
+			else if (var.find(match.substr(split + start + 1, match.length() - match.rfind('^') - 1)) != var.end())
+			{
+				doPower = true;
+				right = var[match.substr(split + start + 1, match.length() - match.rfind('^') - 1)];
+			}
+			else
+				right = Complex::CalcComplex(match.substr(split + start + 1));
+
+			if (match.substr(split + 1).find('^') != std::string::npos && doPower)
+			{
+				int power = stod(match.substr(match.rfind('^') + 1, match.length() - match.rfind('^') - 1));
+				Complex tmp = right;
+				for (int i = 1; i < power; i++)
+					right = right * tmp;
+			}
 
 			switch (match[split])
 			{
@@ -299,6 +340,11 @@ Complex Complex::EvalExpr(std::string str, std::map<std::string, Complex> saved)
 					res = fmod(left, right);
 					break;
 			}
+
+			if (match[0] == '-')
+				res = res * -1;
+			if (match[split + 1] == '-')
+				res = res * -1;
 
 			str.erase(m.position(), m.length());
 			if (str.length() == 0)
