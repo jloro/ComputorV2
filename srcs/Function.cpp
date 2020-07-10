@@ -2,6 +2,7 @@
 #include "Matrix.hpp"
 #include "Real.hpp"
 #include "Complex.hpp"
+#include "ncurses.h"
 
 Function::Function(const std::string & str)
 {
@@ -43,27 +44,32 @@ std::string Function::ToPrint() const
 	}
 	return ret;
 }
-#include "ncurses.h"
+
 std::string Function::Solve(std::string var) const
 {
 	std::string::size_type pos;
-	std::string fct = _fct;
+	std::string fct = _fct, ret = "(";
 
 	printw("fct:%s varl:%s  varn:%s\n", fct.c_str(), _var.c_str(), var.c_str());
+	if (var.compare(_var) == 0)
+		return fct;
 	while ((pos = fct.find(_var)) != std::string::npos)
 		fct.replace(pos, _var.length(), var);
 
 	if (_type == eType::Real)
 	{
 		if (var.find("[") != std::string::npos)
-			return Matrix::EvalExpr(fct).ToPrint();
+			ret += Matrix::EvalExpr(fct).ToPrint();
 		else if (var.find("i") != std::string::npos)
-			return Complex::EvalExpr(fct).ToPrint();
+			ret += Complex::EvalExpr(fct).ToPrint();
 		else
-			return Real::EvalExpr(fct).ToPrint();
+			ret += Real::EvalExpr(fct).ToPrint();
 	}
 	else if (_type == eType::Matrix)
-		return Matrix::EvalExpr(fct).ToPrint();
+		ret += Matrix::EvalExpr(fct).ToPrint();
 	else
-		return Complex::EvalExpr(fct).ToPrint();
+		ret += Complex::EvalExpr(fct).ToPrint();
+	return ret + ")";
 }
+
+std::string Function::GetVar() const { return _var; }

@@ -207,6 +207,7 @@ Matrix Matrix::HadamardProduct(Matrix lhs, Matrix & rhs)
 	{
 		for (int j = 0; j < n; j++)
 		{
+			printw("%f %f\n", lhs.mat[i][j], rhs.mat[i][j]);
 			ret.mat[i][j] = lhs.mat[i][j] * rhs.mat[i][j];
 		}
 	}
@@ -227,6 +228,11 @@ void Matrix::Calc(std::string & str, int firstSub, int endSub, int posSubcalc, i
 	Matrix ret, left, right;
 	std::string subcalc = str.substr(firstSub, endSub);
 	str.erase(firstEra, endEra);
+	if (subcalc.find("]") == std::string::npos)
+	{
+		str.insert(posSubcalc, Real::EvalExpr(subcalc).ToString());
+		return;
+	}
 	std::string::size_type sz;
 	std::string::size_type tmp = subcalc.find_first_of("-+*");
 	left = Matrix(subcalc.substr(0, tmp));
@@ -242,13 +248,12 @@ void Matrix::Calc(std::string & str, int firstSub, int endSub, int posSubcalc, i
 		sz = tmp;
 	if (str[sz + 1] == '*')
 		sz++;
+
 	//right real
 	if (subcalc.substr(sz + 1).find("[[") == std::string::npos)
 	{
 		right = Matrix(left.GetLines(), left.GetCol());
 		right.Fill(Real::EvalExpr(subcalc.substr(sz + 1)).GetValue());
-		if (subcalc[sz] == '*' && subcalc[sz - 1] != '*')
-			subcalc.insert(sz++, 1, '*');
 	}
 	//right matrix
 	else
@@ -268,8 +273,6 @@ void Matrix::Calc(std::string & str, int firstSub, int endSub, int posSubcalc, i
 	{
 		left = Matrix(right.GetLines(), right.GetCol());
 		left.Fill(Real::EvalExpr(subcalc.substr(0, sz)).GetValue());
-		if (subcalc[sz] == '*' && subcalc[sz - 1] != '*')
-			subcalc.insert(sz++, 1, '*');
 	}
 	if (subcalc[sz] == '*' && subcalc[sz - 1] != '*')
 		ret = Matrix::HadamardProduct(left, right);
@@ -296,20 +299,16 @@ Matrix Matrix::EvalExpr(std::string str)
 			std::string subcalc = str.substr(posFirstP + 1, posLastP - posFirstP - 1);
 			int posSubcalc = posFirstP;
 			str.erase(posFirstP, posLastP - posFirstP + 1);
-			ret = EvalExpr(subcalc);
+			ret = Matrix::EvalExpr(subcalc);
 			str.insert(posSubcalc, ret.ToString());
 		}
-		//else if (std::regex_search(str, m, std::regex("\\[(?:(?:\\[[^\\]]*\\])(?:;|\\]))+(?:\\^\\d+)?(?:\\*|\\*\\*)\\[(?:(?:\\[[^\\]]*\\])(?:;|\\]))+(?:\\^\\d+)?")))
-		else if (std::regex_search(str, m, std::regex("(?:^|\\+|\\-)[^\\+\\-\\*]+(?:\\*|(?:\\*\\*))-?[^\\+\\-\\*]+")))
+		else if (std::regex_search(str, m, std::regex("((?:^|\\+|\\-)\\[(?:(?:\\[[^\\]]*\\])(?:;|\\]))+\\*\\*-?\\[(?:(?:\\[[^\\]]*\\])(?:;|\\]))+)|(?:(?:^|\\+|\\-)[^\\+\\-\\*]+\\*-?[^\\+\\-\\*]+)")))
 		{
-				for (auto x:m)
-					Calc(str, str.find(x.str()), x.str().length(), str.find(x.str()), str.find(x.str()), x.str().length());
+				Calc(str, str.find(m.str()), m.str().length(), str.find(m.str()), str.find(m.str()), m.str().length());
 		}
-		//else if (std::regex_search(str, m, std::regex("\\[(?:(?:\\[[^\\]]*\\])(?:;|\\]))+(?:\\^\\d+)?(?:\\+|\\-)\\[(?:(?:\\[[^\\]]*\\])(?:;|\\]))+(?:\\^\\d+)?")))
 		else if (std::regex_search(str, m, std::regex("(?:^|\\+|\\-)[^\\+\\-\\*]+(?:\\+|\\-)-?[^\\+\\-\\*]+")))
 		{
-				for (auto x:m)
-					Calc(str, str.find(x.str()), x.str().length(), str.find(x.str()), str.find(x.str()), x.str().length());
+				Calc(str, str.find(m.str()), m.str().length(), str.find(m.str()), str.find(m.str()), m.str().length());
 
 		}
 		else

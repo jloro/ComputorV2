@@ -44,7 +44,11 @@ Core::~Core() {}
 
 void Core::Calcul()
 {
-	if (_cmd.find("[") != std::string::npos)
+	if (std::regex_search(_cmd, std::regex("(?:[a-z]{2,})|(?:[a-h]|[j-z])")))
+	{
+		printw("%s\n", _cmd.c_str());
+	}
+	else if (_cmd.find("[") != std::string::npos)
 	{
 		printw("%s\n", Matrix::EvalExpr(_cmd.substr(0, _cmd.find('='))).ToPrint().c_str());
 	}
@@ -94,20 +98,16 @@ void Core::ReplaceVar()
 	if (std::count(_cmd.begin(), _cmd.end(), '=') != 1)
 		throw std::runtime_error("Syntax error: multiple equals sign found.");
 
-	std::string tmp;
-	if (std::regex_match(_cmd, std::regex(".*\\?$")))//calcul
-		tmp = _cmd.substr(0, _cmd.find('='));
-	else//assignation
-		tmp = _cmd.substr(_cmd.find("=") + 1);
-
 	std::smatch m;
 
-	std::string str, value, varStr;
+	std::string str, value, varStr, tmp;
 	int pos;
 	bool fct = false;
 
+	//calcul
 	if (std::regex_match(_cmd, std::regex(".*\\?$")))
 		str = _cmd.substr(0, _cmd.find("="));
+	//assignation
 	else
 	{
 		if (_cmd.substr(0, _cmd.find('=')).find('(') != std::string::npos)
@@ -120,11 +120,22 @@ void Core::ReplaceVar()
 		str = _cmd.substr(_cmd.find("=") + 1);
 	}
 
-	while (std::regex_search(tmp, m, std::regex("(?:[a-h]|[j-z])|(?:[a-z]{2,})")))
+	tmp = str;
+	std::stack<std::string> stack;
+	while (std::regex_search(tmp, m, std::regex("(?:[a-z]{2,})|(?:[a-h]|[j-z])")))
 	{
 		if (_map.find(m.str()) == _map.end() && m.str().compare("i") != 0 && m.str().compare(varStr) != 0 && _mapFun.find(m.str()) == _mapFun.end()) 
 			throw std::runtime_error("Syntax error: variable "+m.str()+" unknow.");
 
+		/*
+		if (_mapFun.find(m.str()) != _mapFun.end() && _mapFun[m.str()]->GetVar().compare(tmp.substr(tmp.find('(') + 1, tmp.find(')') - tmp.find('(') - 1)) == 0 && _map.find(tmp.substr(tmp.find('(') + 1, tmp.find(')') - tmp.find('(') - 1)) == _map.end())
+		{
+			stack.push(m.str());
+			tmp.replace(tmp.find('(') + 1, tmp.find(')') - tmp.find('(') - 1, "0");
+		}
+		else if (m.str().compare("i") != 0 && !(fct && m.str().compare(varStr) == 0))
+			stack.push(m.str());
+*/
 		//2t => 2*, while because if 2 times same var
 		std::string::size_type pos = -1;
 		while ((pos = _cmd.find(m.str(), pos + 1)) != std::string::npos)
@@ -136,11 +147,11 @@ void Core::ReplaceVar()
 		}
 
 		tmp.replace(m.position(), m.length(), "0");
+
 	}
 
 	int len = 0;
 
-	std::stack<std::string> stack;
 	while (std::regex_search(str, m, std::regex("[a-z]+")))
 	{
 		if (m.str().compare("i") == 0 || (fct && m.str().compare(varStr) == 0))
@@ -165,7 +176,7 @@ void Core::ReplaceVar()
 			str = _cmd.substr(pos);
 			varStr = str.substr(str.find('(') + 1, str.find(')') - str.find('(') - 1);
 			//printw("cmd:%s\n", _cmd.c_str());
-			value = "("+_mapFun[Core::ToLower(tmp)]->Solve(varStr)+")";
+			value = _mapFun[Core::ToLower(tmp)]->Solve(varStr);
 			len += 2 + varStr.length();
 		}
 		else if (var->GetType() == eType::Real)
@@ -230,8 +241,10 @@ void Core::Checker()
 		check = Matrix::Check;
 	else if (calc.find('i') != std::string::npos)
 		check = Complex::Check;
-	else
+	else if (!std::regex_search(calc, std::regex("(?:[a-z]{2,})|(?:[a-h]|[j-z])")))
 		check = Real::Check;
+	else//POLYNOM ou pas
+		return;
 
 	while (calc.find(")") != std::string::npos)
 	{
