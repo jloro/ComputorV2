@@ -20,6 +20,7 @@ class Matrix : public Type
 		int	GetLines(void) const;
 		int	GetCol(void) const;
 
+		void Fill(double x);
 		static Matrix HadamardProduct(Matrix lhs, Matrix & rhs);
 		static Matrix EvalExpr(std::string str);
 		std::string ToString() const;

@@ -116,8 +116,6 @@ void Core::ReplaceVar()
 			varStr = _cmd.substr(0, _cmd.find('=')).substr(_cmd.find('(') + 1, _cmd.find(')') - _cmd.find('(') - 1);
 			if (std::any_of(varStr.begin(), varStr.end(), [](int c) { return isalpha(c) == 0; }) || varStr.compare("") == 0)
 				throw std::runtime_error("Syntax error: variable of function name must be only letters.");
-			if (_map.find(varStr) != _map.end() || _mapFun.find(varStr) != _mapFun.end())
-				throw std::runtime_error("Error: unknown variable of function already set.");
 		}
 		str = _cmd.substr(_cmd.find("=") + 1);
 	}

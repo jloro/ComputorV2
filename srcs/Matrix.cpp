@@ -3,6 +3,7 @@
 #include <regex>
 #include <curses.h>
 #include "Core.hpp"
+#include "Real.hpp"
 
 Matrix::Matrix(int m, int n) : Type(eType::Matrix), _m(m), _n(n)
 {
@@ -212,13 +213,22 @@ Matrix Matrix::HadamardProduct(Matrix lhs, Matrix & rhs)
 	return ret;
 }
 
+void Matrix::Fill(double x)
+{
+	for (int i = 0; i < _m; i++)
+	{
+		for (int j = 0; j < _n; j++)
+			mat[i][j] = x;
+	}
+}
+
 void Matrix::Calc(std::string & str, int firstSub, int endSub, int posSubcalc, int firstEra, int endEra)
 {
 	Matrix ret, left, right;
 	std::string subcalc = str.substr(firstSub, endSub);
 	str.erase(firstEra, endEra);
 	std::string::size_type sz;
-	std::string::size_type tmp = subcalc.find("]]") + 2;
+	std::string::size_type tmp = subcalc.find_first_of("-+*");
 	left = Matrix(subcalc.substr(0, tmp));
 	if (subcalc[tmp] == '^')
 	{
@@ -232,22 +242,43 @@ void Matrix::Calc(std::string & str, int firstSub, int endSub, int posSubcalc, i
 		sz = tmp;
 	if (str[sz + 1] == '*')
 		sz++;
-	right = Matrix(subcalc.substr(sz + 1));
-	if (subcalc.substr(subcalc.rfind(right.ToString()) + right.ToString().length()).find('^') != std::string::npos)
+	//right real
+	if (subcalc.substr(sz + 1).find("[[") == std::string::npos)
 	{
-		int power = std::stod(subcalc.substr(subcalc.rfind('^') + 1));
-		Matrix matTmp = right;
-		for (int i = 1; i < power; i++)
-			right = right * matTmp;
+		right = Matrix(left.GetLines(), left.GetCol());
+		right.Fill(Real::EvalExpr(subcalc.substr(sz + 1)).GetValue());
+		if (subcalc[sz] == '*' && subcalc[sz - 1] != '*')
+			subcalc.insert(sz++, 1, '*');
+	}
+	//right matrix
+	else
+	{
+		right = Matrix(subcalc.substr(sz + 1));
+		if (subcalc.substr(subcalc.rfind(right.ToString()) + right.ToString().length()).find('^') != std::string::npos)
+		{
+			int power = std::stod(subcalc.substr(subcalc.rfind('^') + 1));
+			Matrix matTmp = right;
+			for (int i = 1; i < power; i++)
+				right = right * matTmp;
+		}
+	}
+
+	//check if left is real
+	if (subcalc.substr(0, sz).find("[[") == std::string::npos)
+	{
+		left = Matrix(right.GetLines(), right.GetCol());
+		left.Fill(Real::EvalExpr(subcalc.substr(0, sz)).GetValue());
+		if (subcalc[sz] == '*' && subcalc[sz - 1] != '*')
+			subcalc.insert(sz++, 1, '*');
 	}
 	if (subcalc[sz] == '*' && subcalc[sz - 1] != '*')
-		ret = left * right;
+		ret = Matrix::HadamardProduct(left, right);
 	else if (subcalc[sz] == '-')
 		ret = left - right;
 	else if (subcalc[sz] == '+')
 		ret = left + right;
 	else if (subcalc[sz] == '*' && subcalc[sz - 1] == '*')
-		ret = Matrix::HadamardProduct(left, right);
+		ret = left * right;
 	str.insert(posSubcalc, ret.ToString());
 }
 
@@ -268,12 +299,14 @@ Matrix Matrix::EvalExpr(std::string str)
 			ret = EvalExpr(subcalc);
 			str.insert(posSubcalc, ret.ToString());
 		}
-		else if (std::regex_search(str, m, std::regex("\\[(?:(?:\\[[^\\]]*\\])(?:;|\\]))+(?:\\^\\d+)?(?:\\*|\\*\\*)\\[(?:(?:\\[[^\\]]*\\])(?:;|\\]))+(?:\\^\\d+)?")))
+		//else if (std::regex_search(str, m, std::regex("\\[(?:(?:\\[[^\\]]*\\])(?:;|\\]))+(?:\\^\\d+)?(?:\\*|\\*\\*)\\[(?:(?:\\[[^\\]]*\\])(?:;|\\]))+(?:\\^\\d+)?")))
+		else if (std::regex_search(str, m, std::regex("(?:^|\\+|\\-)[^\\+\\-\\*]+(?:\\*|(?:\\*\\*))-?[^\\+\\-\\*]+")))
 		{
 				for (auto x:m)
 					Calc(str, str.find(x.str()), x.str().length(), str.find(x.str()), str.find(x.str()), x.str().length());
 		}
-		else if (std::regex_search(str, m, std::regex("\\[(?:(?:\\[[^\\]]*\\])(?:;|\\]))+(?:\\^\\d+)?(?:\\+|\\-)\\[(?:(?:\\[[^\\]]*\\])(?:;|\\]))+(?:\\^\\d+)?")))
+		//else if (std::regex_search(str, m, std::regex("\\[(?:(?:\\[[^\\]]*\\])(?:;|\\]))+(?:\\^\\d+)?(?:\\+|\\-)\\[(?:(?:\\[[^\\]]*\\])(?:;|\\]))+(?:\\^\\d+)?")))
+		else if (std::regex_search(str, m, std::regex("(?:^|\\+|\\-)[^\\+\\-\\*]+(?:\\+|\\-)-?[^\\+\\-\\*]+")))
 		{
 				for (auto x:m)
 					Calc(str, str.find(x.str()), x.str().length(), str.find(x.str()), str.find(x.str()), x.str().length());

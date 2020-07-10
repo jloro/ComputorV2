@@ -259,7 +259,7 @@ Complex Complex::EvalExpr(std::string str, std::map<std::string, Complex> saved)
 			var[key] = Complex::EvalExpr(subcalc, var);
 			str.replace(posFirstP, posLastP - posFirstP + 1, key);
 		}
-		else if (std::regex_search(str, m, std::regex("(?:^|\\+|\\-)[^\\+\\-\\*\\/]*(?:\\*|\\/|%)[^\\+\\-\\*\\/]*")))
+		else if (std::regex_search(str, m, std::regex("(?:^|\\+|\\-)[^\\+\\-\\*\\/]*(?:\\*|\\/|%)-?[^\\+\\-\\*\\/]*")))
 		{
 			std::string match = m.str();
 			Complex res, left, right;
