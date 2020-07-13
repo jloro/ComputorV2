@@ -38,7 +38,9 @@ Matrix::Matrix(std::string str) : Type(eType::Matrix)
 		while (curr.compare("") != 0)
 		{
 			std::string currCut = curr.substr(0, curr.find(','));
-			mat[i][j] = std::stod(currCut);
+			printw("%s\n", currCut.c_str());
+			return;
+			mat[i][j] = Real::EvalExpr(currCut).GetValue();
 			j++;
 			curr.erase(0, currCut.length() + 1);
 		}

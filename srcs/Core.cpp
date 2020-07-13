@@ -8,6 +8,7 @@
 #include <sstream>
 #include "Complex.hpp"
 #include <stack>
+#include <algorithm>
 
 std::string	Core::Dtoa(double n)
 {
@@ -322,14 +323,18 @@ void Core::Loop()
 void	Core::ReadLine(Historic & historic)
 {
 	int old_curs = curs_set(1);
-	size_t pos = 0;
-	int x, y, c;
+	int pos = 0, ypos = 0;
+	size_t x, y, c, tmpx, tmpy, xMax, yMax;
 	getyx(stdscr, y, x);
+	getmaxyx(stdscr, yMax, xMax);
 
 	while (1)
 	{
-		mvaddnstr(y, x, _cmd.c_str(), _cmd.size());
-		move(y, x+pos);
+		getyx(stdscr, tmpy, tmpx);
+		move(10, 0);
+		//printw(" m:%d %d    %d  %d     %d %d test:%d\n", xMax, yMax, tmpx, tmpy, x+pos, y+ypos, 7%(xMax - 2) );
+		mvaddnstr(y, 2, _cmd.c_str(), _cmd.size());
+		move(y+ypos, x+pos);
 		c = getch();
 
 		if (c == KEY_ENTER || c == '\n' || c == '\r')
@@ -337,17 +342,41 @@ void	Core::ReadLine(Historic & historic)
 		else if (isprint(c)) 
 		{
 			if (_cmd.size() < 100)
-				_cmd.insert(_cmd.begin() + pos++, c);
+			{
+				_cmd.insert(_cmd.begin() + pos - 2 + x + (xMax) * ypos, c);
+				if (x+pos < xMax - 1)
+					pos++;
+				else
+				{
+					pos = 0;
+					x = 0;
+					ypos++;
+				}
+			}
 		} 
 		else if (c == 260) 
 		{
-			if (pos > 0)
+			if ((ypos == 0 && x + pos > 2) || (ypos != 0 && x + pos > 0))
 				pos -= 1;
+			else if (ypos != 0)
+			{
+				ypos--;
+				pos = xMax - 1;
+			}
 		}
 		else if (c == KEY_RIGHT) 
 		{
-			if (pos < _cmd.size())
-				pos += 1;
+			if (pos - 2 + x + (xMax) * ypos < _cmd.size())
+			{
+				if (x+pos < xMax - 1)
+					pos++;
+				else
+				{
+					pos = 0;
+					x = 0;
+					ypos++;
+				}
+			}
 		} 
 		else if (c == KEY_UP || c == KEY_DOWN) 
 		{
@@ -355,9 +384,9 @@ void	Core::ReadLine(Historic & historic)
 				_cmd = historic.GetPrevCmd();
 			else
 				_cmd = historic.GetNextCmd();
-			if (pos > _cmd.size())
+			if (pos > (int)_cmd.size())
 			{
-				while (pos > _cmd.size())
+				while (pos > (int)_cmd.size())
 				{
 					delch();
 					pos--;
@@ -365,21 +394,33 @@ void	Core::ReadLine(Historic & historic)
 				}
 				delch();
 			}
-			pos = _cmd.size();
+			x = 2;
+			pos = 0;
+			ypos = 0;
+			size_t tmp = _cmd.size(), tmpMax = xMax - 2;
+			if (tmp > xMax - 2)
+			{
+				x = 0;
+				ypos++;
+				tmp -= xMax - 2;
+				tmpMax = xMax;
+			}
+			pos += tmp % (xMax);
+			ypos += tmp / (xMax);
 		} 
 		else if (c == 127) 
 		{
 			if (pos > 0) 
 			{
 				historic.ResetIt();
-				_cmd.erase(pos - 1, 1);
+				_cmd.erase(pos - 2 + x + (xMax) * ypos - 1, 1);
 				mvdelch(y, x + pos - 1);
-				pos -= 1;
+				pos--;
 			}
 		}
 	}
 
-	mvaddnstr(y, x, _cmd.c_str(), _cmd.size());
+	mvaddnstr(y, 2, _cmd.c_str(), _cmd.size());
 	if (old_curs != ERR) 
 		curs_set(old_curs);
 }
