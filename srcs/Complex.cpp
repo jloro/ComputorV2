@@ -13,9 +13,8 @@ Complex::~Complex(void) {}
 Complex Complex::fmod(Complex left, Complex right)
 {
 	Complex x = left / right;
-	double y = floor(x.GetReal()) + floor(x.GetIma());
-	Complex z = right * y;
-	return left - z;
+	x = Complex(floor(x.GetReal()), floor(x.GetIma()));
+	return left - x * right;
 }
 
 std::ostream & operator<<(std::ostream & o, Complex & rhs)
