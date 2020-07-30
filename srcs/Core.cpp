@@ -7,8 +7,151 @@
 #include "Matrix.hpp"
 #include <sstream>
 #include "Complex.hpp"
+#include "Polynom.hpp"
 #include <stack>
 #include <algorithm>
+
+double GetCoef(std::string str)
+{
+	if (str.find("x") != std::string::npos)
+	{
+		if (str.substr(0, str.find("x")).length() == 0)
+			return 1;
+		else if (str.substr(0, str.find("x")).compare("-") == 0) 
+			return -1;
+		else
+			return std::stod(str.substr(0, str.find("x")));
+	}
+	else
+		return std::stod(str);
+}
+
+std::string CalcX(std::string match)
+{
+	std::smatch m;
+	std::string tmp;
+
+	double left, right;
+	int op, power = 0;
+
+	if (match.find("*") != std::string::npos)
+		op = match.find("*");
+	else
+		op = match.find("/");
+
+	left = GetCoef(match.substr(0, op));
+	right = GetCoef(match.substr(op + 1));
+
+	tmp = match;
+	if (std::regex_search(tmp, m, std::regex("x(?:\\^\\d+)?")))
+	{
+		if (m.str().compare("x") == 0)
+			power = 1;
+		else
+			power = std::stod(m.str().substr(2));
+		tmp = m.suffix();
+	}
+
+	if (std::regex_search(tmp, m, std::regex("x(?:\\^\\d+)?")))
+	{
+		if (m.str().compare("x") == 0)
+			power = match[op] == '*' ? power + 1 : power - 1;
+		else
+			power = match[op] == '*' ? power + std::stod(m.str().substr(2)) : power - std::stod(m.str().substr(2));
+	}
+
+	if (match[op] == '*')
+		tmp = Core::Dtoa(left * right);
+	else
+		tmp = Core::Dtoa(left / right);
+
+	return tmp+"x^"+Core::Dtoa(power);
+}
+
+std::string ReduceEquation(std::string equa, std::string u)
+{
+	std::string ret = "", match, calc, tmp;
+	std::smatch m, m2;
+	Real res;
+	std::map<std::string, std::string> var;
+
+	//remove brackets
+	if (equa.find_last_of("(") != std::string::npos)
+	{
+		int posFirstP = equa.find_last_of("(");
+		int posLastP = equa.find(")", equa.find_last_of("("));
+		std::string subcalc = equa.substr(posFirstP + 1, posLastP - posFirstP - 1);
+		if (subcalc.find("x") == std::string::npos)
+			equa.replace(posFirstP, subcalc.length() + 2, Real::EvalExpr(subcalc).ToString());
+		else
+		{
+			std::string key = "A";
+			key[0] += var.size();
+			var[key] = equa;
+			equa.replace(posFirstP, subcalc.length() + 2, key);
+		}
+	}
+	//develop
+	while (std::regex_search(equa, m, std::regex("(?:^|\\+|\\-)[^\\*\\/\\+\\-]*(?:\\*|\\/)-?[^\\*\\/\\+\\-]*")))
+	{
+		match = m.str();
+
+		if (std::none_of(match.begin(), match.end(), [](char c){ return isalpha(c) != 0; }))
+			equa.replace(m.position(), match.length(), Real::EvalExpr(match).ToString());
+		else if (match.find("x") != std::string::npos)
+		{
+			equa.replace(m.position(), match.length(), CalcX(match));
+		}
+	}
+	printw("after dev:%s\n", equa.c_str());
+	//get coefs
+	calc = "0";
+	while (std::regex_search(equa, m, std::regex("(\\+|-)?(?:\\d+(?:\\.\\d+)?(?:\\^\\d+)?)?\\*?"+u+"\\^2")))
+	{
+		match = m.str();
+		match.erase(match.find(u), u.length() + 2);
+		if (match.compare("") == 0 || match.compare("+") == 0)
+			calc += "+1";
+		else if (match.compare("-") == 0)
+			calc += "-1";
+		else
+			calc += match;
+		printw("m:%s\n", match.c_str());
+		equa.erase(equa.find(m.str()), m.str().length());
+	}
+	printw("calc x^2:%s\n", calc.c_str());
+	printw("equa:%s\n", equa.c_str());
+	ret += Real::EvalExpr(calc).ToString()+"*"+u+"^2";
+	printw("ret:%s\n", ret.c_str());
+	calc = "0";
+	while (std::regex_search(equa, m, std::regex("(\\+|-)?(?:\\d+(?:\\.\\d+)?(?:\\^\\d+)?)?\\*?"+u)))
+	{
+		match = m.str();
+		match.erase(match.find(u), u.length());
+		if (match.compare("") == 0 || match.compare("+") == 0)
+			calc += "+1";
+		else if (match.compare("-") == 0)
+			calc += "-1";
+		else
+			calc += match;
+		printw("m:%s\n", match.c_str());
+		equa.erase(equa.find(m.str()), m.str().length());
+	}
+	printw("calc x:%s\n", calc.c_str());
+	printw("equa:%s\n", equa.c_str());
+	res = Real::EvalExpr(calc);
+	if (res.GetValue() < 0)
+		ret += res.ToString()+"*"+u+"^1";
+	else
+		ret += "+"+res.ToString()+"*"+u+"^1";
+	res = Real::EvalExpr(equa);
+	if (res.GetValue() < 0)
+		ret += res.ToString()+"*"+u+"^0";
+	else
+		ret += "+"+res.ToString()+"*"+u+"^0";
+	printw("ret:%s\n", ret.c_str());
+	return ret;
+}
 
 std::string	Core::Dtoa(double n)
 {
@@ -45,6 +188,11 @@ Core::~Core() {}
 
 void Core::Calcul()
 {
+	if (_cmd.find("=0?") != std::string::npos)
+	{
+		printw("%s\n", ReduceEquation(_cmd.substr(0, _cmd.length() - 3), "x").c_str());
+		//Polynom(ReduceEquation(_cmd.substr(0, _cmd.length() - 3), "x"));
+	}
 	if (std::regex_search(_cmd, std::regex("(?:[a-z]{2,})|(?:[a-h]|[j-z])")))
 	{
 		printw("%s\n", _cmd.c_str());
@@ -128,15 +276,6 @@ void Core::ReplaceVar()
 		if (_map.find(m.str()) == _map.end() && m.str().compare("i") != 0 && m.str().compare(varStr) != 0 && _mapFun.find(m.str()) == _mapFun.end()) 
 			throw std::runtime_error("Syntax error: variable "+m.str()+" unknow.");
 
-		/*
-		if (_mapFun.find(m.str()) != _mapFun.end() && _mapFun[m.str()]->GetVar().compare(tmp.substr(tmp.find('(') + 1, tmp.find(')') - tmp.find('(') - 1)) == 0 && _map.find(tmp.substr(tmp.find('(') + 1, tmp.find(')') - tmp.find('(') - 1)) == _map.end())
-		{
-			stack.push(m.str());
-			tmp.replace(tmp.find('(') + 1, tmp.find(')') - tmp.find('(') - 1, "0");
-		}
-		else if (m.str().compare("i") != 0 && !(fct && m.str().compare(varStr) == 0))
-			stack.push(m.str());
-*/
 		//2t => 2*, while because if 2 times same var
 		std::string::size_type pos = -1;
 		while ((pos = _cmd.find(m.str(), pos + 1)) != std::string::npos)
@@ -273,7 +412,13 @@ void Core::Exec()
 		}
 		return false;
 	}), _cmd.end());
-	ReplaceVar();
+	if (_cmd.back() == '?' && _cmd.substr(_cmd.find("=") + 1).compare("?") != 0)
+	{
+		//_cmd.insert(_cmd.find("="), "-("+_cmd.substr(_cmd.find("=") + 1, _cmd.length() - _cmd.find("=") - 2)+")");
+		_cmd.erase(_cmd.find("=") + 1, _cmd.length() - _cmd.find("=") - 2);
+		_cmd.insert(_cmd.find("=") + 1, "0");
+	}
+	//ReplaceVar();
 	Checker();
 	if (std::regex_match(_cmd, std::regex(".*\\?$")))
 		Calcul();
@@ -332,7 +477,6 @@ void	Core::ReadLine(Historic & historic)
 	{
 		getyx(stdscr, tmpy, tmpx);
 		move(10, 0);
-		//printw(" m:%d %d    %d  %d     %d %d test:%d\n", xMax, yMax, tmpx, tmpy, x+pos, y+ypos, 7%(xMax - 2) );
 		mvaddnstr(y, 2, _cmd.c_str(), _cmd.size());
 		move(y+ypos, x+pos);
 		c = getch();
@@ -390,7 +534,7 @@ void	Core::ReadLine(Historic & historic)
 				{
 					delch();
 					pos--;
-					move(y, x+pos);
+					move(y+ypos, x+pos);
 				}
 				delch();
 			}

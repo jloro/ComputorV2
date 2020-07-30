@@ -11,6 +11,7 @@ SRC_FILES = main.cpp \
 			Complex.cpp \
 			Real.cpp \
 			Function.cpp \
+			Polynom.cpp \
 
 INC_FILES = Matrix.hpp \
 			Historic.hpp \
@@ -19,6 +20,7 @@ INC_FILES = Matrix.hpp \
 			Complex.hpp \
 			Real.cpp \
 			Function.hpp \
+			Polynom.hpp \
 
 OBJ_FILES = $(SRC_FILES:.cpp=.o)
 
